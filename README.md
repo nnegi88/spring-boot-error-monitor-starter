@@ -37,25 +37,64 @@ A Spring Boot starter library that provides centralized error monitoring with fl
 - Spring Boot 2.5 or higher
 - Spring WebFlux (for async HTTP clients)
 
-## Quick Start
+## Installation
 
-### 1. Add Dependency
+### Maven Central (Primary Distribution)
+
+This library is available on Maven Central. Simply add the dependency to your project:
 
 #### Maven
 ```xml
 <dependency>
     <groupId>io.github.nnegi88</groupId>
     <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
 #### Gradle
 ```gradle
-implementation 'io.github.nnegi88:spring-boot-error-monitor-starter:1.0.0'
+implementation 'io.github.nnegi88:spring-boot-error-monitor-starter:1.0.1'
 ```
 
-### 2. Configure Your Application
+No additional repository configuration is needed as Maven Central is included by default in most build tools.
+
+### Alternative: JitPack
+
+If you need to use a specific commit or branch:
+
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependency>
+    <groupId>com.github.nnegi88</groupId>
+    <artifactId>spring-boot-error-monitor-starter</artifactId>
+    <version>v1.0.1</version> <!-- or use commit hash -->
+</dependency>
+```
+
+### Alternative: Local JAR
+
+For offline usage, download the JAR from [GitHub Releases](https://github.com/nnegi88/spring-boot-error-monitor-starter/releases):
+
+```xml
+<dependency>
+    <groupId>io.github.nnegi88</groupId>
+    <artifactId>spring-boot-error-monitor-starter</artifactId>
+    <version>1.0.1</version>
+    <scope>system</scope>
+    <systemPath>${project.basedir}/lib/spring-boot-error-monitor-starter-1.0.1.jar</systemPath>
+</dependency>
+```
+
+## Quick Start
+
+### Configure Your Application
 
 Add the following to your `application.yml`:
 
@@ -80,7 +119,7 @@ spring:
         theme-color: "FF0000"
 ```
 
-### 3. That's It!
+### That's It!
 
 The library will automatically start monitoring your application for errors and send notifications to your configured platform.
 
@@ -445,6 +484,13 @@ Visit `http://localhost:8080` to:
 
 ## Development
 
+### When to Build
+
+You only need to build when:
+1. **Making changes** to the library
+2. **Testing locally** before publishing
+3. **Contributing** to the project
+
 ### Building from Source
 
 ```bash
@@ -452,7 +498,7 @@ Visit `http://localhost:8080` to:
 git clone https://github.com/nnegi88/spring-boot-error-monitor-starter.git
 cd spring-boot-error-monitor-starter
 
-# Build the project
+# One-time setup
 mvn clean install
 
 # Run tests
@@ -463,7 +509,19 @@ mvn test -Dtest=ErrorMonitorHealthIndicatorTest
 
 # Build without tests
 mvn clean install -DskipTests
+
+# Use file watching for auto-rebuild
+mvn spring-boot:run -Dspring-boot.run.fork=false
+
+# Or use your IDE's auto-build feature
 ```
+
+### Performance Tips
+
+1. **Use Dependency Caching**: Your IDE caches dependencies
+2. **Incremental Builds**: Only changed files are recompiled
+3. **Multi-module Projects**: Set up as a module dependency
+4. **CI/CD**: Let GitHub Actions do the building
 
 ### Performance Benchmarks
 
@@ -524,8 +582,8 @@ logging:
 
 ### Branch Strategy
 
-- **main**: Production-ready code, triggers automatic releases
-- **develop**: Integration branch for features, triggers snapshot deployments
+- **main**: Production-ready code, triggers automatic releases to Maven Central
+- **develop**: Integration branch for features
 - **feature/***: Individual feature development
 
 ### Development Process
@@ -542,7 +600,6 @@ logging:
    git merge feature/my-feature
    git push origin develop
    ```
-   - This automatically deploys a SNAPSHOT to OSSRH
 
 3. **When ready for release, merge to main**:
    ```bash
@@ -552,29 +609,17 @@ logging:
    ```
    - This automatically releases to Maven Central
 
-### Snapshot Versions
-
-Snapshot versions from the `develop` branch are available at:
-```xml
-<repositories>
-    <repository>
-        <id>ossrh-snapshots</id>
-        <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </repository>
-</repositories>
-```
-
 ## Publishing to Maven Central
 
-### Automated Publishing (Recommended)
+### Automated Publishing
 
-The project automatically publishes to Maven Central when:
-- Code is pushed to `main` branch with a SNAPSHOT version
-- A GitHub Release is created
-- Manual workflow dispatch is triggered
+Every push to `main` automatically:
+1. Builds the library
+2. Runs tests
+3. Creates GitHub Release
+4. Publishes to Maven Central
+
+No manual building required!
 
 ### Manual Publishing
 
@@ -592,7 +637,7 @@ Once published, users can include the dependency:
 <dependency>
     <groupId>io.github.nnegi88</groupId>
     <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
