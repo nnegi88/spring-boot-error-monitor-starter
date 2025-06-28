@@ -11,13 +11,13 @@ This library is available on Maven Central. Simply add the dependency to your pr
 <dependency>
     <groupId>io.github.nnegi88</groupId>
     <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
 #### Gradle
 ```gradle
-implementation 'io.github.nnegi88:spring-boot-error-monitor-starter:1.0.0'
+implementation 'io.github.nnegi88:spring-boot-error-monitor-starter:1.0.1'
 ```
 
 No additional repository configuration is needed as Maven Central is included by default in most build tools.
@@ -37,7 +37,7 @@ If you need to use a specific commit or branch:
 <dependency>
     <groupId>com.github.nnegi88</groupId>
     <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>v1.0.0</version> <!-- or use commit hash -->
+    <version>v1.0.1</version> <!-- or use commit hash -->
 </dependency>
 ```
 
@@ -49,9 +49,9 @@ For offline usage, download the JAR from [GitHub Releases](https://github.com/nn
 <dependency>
     <groupId>io.github.nnegi88</groupId>
     <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <scope>system</scope>
-    <systemPath>${project.basedir}/lib/spring-boot-error-monitor-starter-1.0.0.jar</systemPath>
+    <systemPath>${project.basedir}/lib/spring-boot-error-monitor-starter-1.0.1.jar</systemPath>
 </dependency>
 ```
 
@@ -68,9 +68,10 @@ Every push to `main` automatically:
 1. Builds the library
 2. Runs tests
 3. Creates GitHub Release
-4. Publishes to GitHub Packages
+4. Publishes to Maven Central
 
 No manual building required!
+
 
 ## For Development
 
@@ -96,6 +97,6 @@ mvn spring-boot:run -Dspring-boot.run.fork=false
 ## Summary
 
 - **End Users**: Never need to build - just add dependency
-- **Your Team**: Use GitHub Packages - automatic updates
-- **Public Users**: Use JitPack - zero configuration
+- **Your Team**: Use Maven Central - automatic updates
+- **Public Users**: Use Maven Central or JitPack
 - **You**: Only build when developing new features
