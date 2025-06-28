@@ -253,6 +253,7 @@
                 <configuration>
                     <publishingServerId>central</publishingServerId>
                     <autoRelease>false</autoRelease>
+                    <skipPublishing>true</skipPublishing>
                 </configuration>
             </plugin>
         </plugins>
