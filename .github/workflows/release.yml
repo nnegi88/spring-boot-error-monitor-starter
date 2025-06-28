@@ -45,6 +45,19 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
+    - name: Debug Environment Variables
+      run: |
+        echo "Checking if secrets are properly set..."
+        if [ -z "$MAVEN_USERNAME" ]; then echo "ERROR: MAVEN_USERNAME is empty!"; else echo "MAVEN_USERNAME is set (length: ${#MAVEN_USERNAME})"; fi
+        if [ -z "$MAVEN_PASSWORD" ]; then echo "ERROR: MAVEN_PASSWORD is empty!"; else echo "MAVEN_PASSWORD is set (length: ${#MAVEN_PASSWORD})"; fi
+        if [ -z "$MAVEN_GPG_PASSPHRASE" ]; then echo "INFO: MAVEN_GPG_PASSPHRASE is empty (this might be expected)"; else echo "MAVEN_GPG_PASSPHRASE is set"; fi
+
+    - name: Debug Maven Settings
+      run: |
+        echo "--- Maven Effective Settings (checking for 'central' server) ---"
+        mvn help:effective-settings -B | grep -A 10 -B 2 "central" || echo "No 'central' server found in settings"
+        echo "--------------------------------"
+
     - name: Extract version from pom.xml
       id: version
       run: |
