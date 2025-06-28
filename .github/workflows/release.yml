@@ -111,7 +111,11 @@ jobs:
       if: success()
       run: |
         if [ "${{ steps.version.outputs.is_snapshot }}" == "true" ]; then
-          echo "✅ SNAPSHOT version ${{ steps.version.outputs.version }} deployed to OSSRH Snapshots"
+          echo "✅ SNAPSHOT version ${{ steps.version.outputs.version }} built successfully"
+          echo "📦 Artifacts are ready in target/ directory"
+          echo "⚠️  Note: Deployment to OSSRH is currently disabled"
         else
-          echo "✅ Release version ${{ steps.version.outputs.version }} deployed to Maven Central"
+          echo "✅ Release version ${{ steps.version.outputs.version }} built successfully"
+          echo "📦 Artifacts are ready in target/ directory"
+          echo "⚠️  Note: Deployment to Maven Central is currently disabled"
         fi
