@@ -276,14 +276,6 @@
         </plugins>
     </build>
     
-    <!-- Distribution Management -->
-    <distributionManagement>
-        <snapshotRepository>
-            <id>central</id>
-            <url>https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
-    
     <!-- Profiles for Release -->
     <profiles>
         <profile>
@@ -302,31 +294,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        
-        <!-- Profile for snapshot deployments -->
-        <profile>
-            <id>snapshot</id>
-            <build>
-                <plugins>
-                    <!-- Enable maven-deploy-plugin for snapshots -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
-                        <configuration>
-                            <skip>false</skip>
-                        </configuration>
-                    </plugin>
-                    <!-- Disable central-publishing-maven-plugin for snapshots -->
-                    <plugin>
-                        <groupId>org.sonatype.central</groupId>
-                        <artifactId>central-publishing-maven-plugin</artifactId>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>

@@ -72,31 +72,6 @@ Every push to `main` automatically:
 
 No manual building required!
 
-### Snapshot Versions
-
-For development snapshots, use:
-
-```xml
-<dependency>
-    <groupId>io.github.nnegi88</groupId>
-    <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
-</dependency>
-```
-
-Note: You'll need to add the OSSRH snapshot repository:
-
-```xml
-<repositories>
-    <repository>
-        <id>ossrh-snapshots</id>
-        <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </repository>
-</repositories>
-```
 
 ## For Development
 
