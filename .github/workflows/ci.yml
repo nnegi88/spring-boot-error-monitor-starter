@@ -31,10 +31,10 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
 
     - name: Run tests
-      run: mvn clean test -B
+      run: mvn clean test -B -Dgpg.skip=true
 
     - name: Run integration tests
-      run: mvn verify -B
+      run: mvn verify -B -Dgpg.skip=true
 
     - name: Generate test report
       uses: dorny/test-reporter@v1
@@ -72,10 +72,10 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
 
     - name: Build with Maven
-      run: mvn clean compile -B
+      run: mvn clean compile -B -Dgpg.skip=true
 
     - name: Package
-      run: mvn package -DskipTests -B
+      run: mvn package -DskipTests -B -Dgpg.skip=true
 
     - name: Verify JAR structure
       run: |
@@ -102,10 +102,10 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
 
     - name: Run Checkstyle
-      run: mvn checkstyle:check -B || true
+      run: mvn checkstyle:check -B -Dgpg.skip=true || true
 
     - name: Run SpotBugs
-      run: mvn spotbugs:check -B || true
+      run: mvn spotbugs:check -B -Dgpg.skip=true || true
 
     - name: Verify code formatting
-      run: mvn spring-javaformat:validate -B || true
+      run: mvn spring-javaformat:validate -B -Dgpg.skip=true || true
