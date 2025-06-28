@@ -17,10 +17,6 @@ jobs:
     permissions:
       contents: write
       packages: write
-    env:
-      MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-      MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-      MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
     
     steps:
     - uses: actions/checkout@v4
@@ -33,10 +29,10 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         server-id: central
-        server-username: ${{ env.MAVEN_USERNAME }}
-        server-password: ${{ env.MAVEN_PASSWORD }}
+        server-username: ${{ secrets.OSSRH_USERNAME }}
+        server-password: ${{ secrets.OSSRH_TOKEN }}
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-        gpg-passphrase: ${{ env.MAVEN_GPG_PASSPHRASE }}
+        gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
     - name: Cache Maven dependencies
       uses: actions/cache@v3
@@ -45,16 +41,21 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
-    - name: Debug Environment Variables
+    - name: Debug Secrets
       run: |
-        echo "Checking if secrets are properly set..."
-        if [ -z "$MAVEN_USERNAME" ]; then echo "ERROR: MAVEN_USERNAME is empty!"; else echo "MAVEN_USERNAME is set (length: ${#MAVEN_USERNAME})"; fi
-        if [ -z "$MAVEN_PASSWORD" ]; then echo "ERROR: MAVEN_PASSWORD is empty!"; else echo "MAVEN_PASSWORD is set (length: ${#MAVEN_PASSWORD})"; fi
-        if [ -z "$MAVEN_GPG_PASSPHRASE" ]; then echo "INFO: MAVEN_GPG_PASSPHRASE is empty (this might be expected)"; else echo "MAVEN_GPG_PASSPHRASE is set"; fi
+        echo "Checking if secrets are properly configured..."
+        echo "Note: Secrets cannot be directly printed for security reasons"
+        echo "OSSRH_USERNAME is configured: ${{ secrets.OSSRH_USERNAME != '' }}"
+        echo "OSSRH_TOKEN is configured: ${{ secrets.OSSRH_TOKEN != '' }}"
+        echo "MAVEN_GPG_PRIVATE_KEY is configured: ${{ secrets.MAVEN_GPG_PRIVATE_KEY != '' }}"
+        echo "MAVEN_GPG_PASSPHRASE is configured: ${{ secrets.MAVEN_GPG_PASSPHRASE != '' }}"
 
     - name: Debug Maven Settings
       run: |
-        echo "--- Maven Effective Settings (checking for 'central' server) ---"
+        echo "--- Maven Effective Settings ---"
+        mvn help:effective-settings -B
+        echo "--------------------------------"
+        echo "--- Checking for 'central' server specifically ---"
         mvn help:effective-settings -B | grep -A 10 -B 2 "central" || echo "No 'central' server found in settings"
         echo "--------------------------------"
 
