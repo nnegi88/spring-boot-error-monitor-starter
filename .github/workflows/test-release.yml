@@ -1,7 +1,11 @@
-name: Test Release (No Signing)
+name: Test Build (No Deployment)
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - develop
 
 jobs:
   test-release:

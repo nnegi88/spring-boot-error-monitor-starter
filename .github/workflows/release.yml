@@ -45,13 +45,15 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Current version: $VERSION"
         
-        # Determine if this is a release or snapshot
+        # Check if this is a release version (no SNAPSHOT)
         if [[ $VERSION == *"-SNAPSHOT" ]]; then
-          echo "is_snapshot=true" >> $GITHUB_OUTPUT
-          echo "Version is a SNAPSHOT, will deploy to snapshots repository"
+          echo "❌ ERROR: Main branch should only contain release versions!"
+          echo "Found SNAPSHOT version: $VERSION"
+          echo "Please update pom.xml to a release version (e.g., 1.0.0)"
+          exit 1
         else
           echo "is_snapshot=false" >> $GITHUB_OUTPUT
-          echo "Version is a release, will deploy to staging/release repository"
+          echo "✅ Version is a release: $VERSION"
         fi
 
     - name: Build and verify
@@ -75,7 +77,6 @@ jobs:
     #     MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
     - name: Create GitHub Release
-      if: steps.version.outputs.is_snapshot == 'false'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{ steps.version.outputs.version }}
@@ -107,15 +108,12 @@ jobs:
         prerelease: false
         generate_release_notes: true
 
-    - name: Comment deployment status
+    - name: Release Summary
       if: success()
       run: |
-        if [ "${{ steps.version.outputs.is_snapshot }}" == "true" ]; then
-          echo "✅ SNAPSHOT version ${{ steps.version.outputs.version }} built successfully"
-          echo "📦 Artifacts are ready in target/ directory"
-          echo "⚠️  Note: Deployment to OSSRH is currently disabled"
-        else
-          echo "✅ Release version ${{ steps.version.outputs.version }} built successfully"
-          echo "📦 Artifacts are ready in target/ directory"
-          echo "⚠️  Note: Deployment to Maven Central is currently disabled"
-        fi
+        echo "✅ Release version ${{ steps.version.outputs.version }} completed!"
+        echo "📦 Artifacts built and signed successfully"
+        echo "🏷️ GitHub Release created with tag v${{ steps.version.outputs.version }}"
+        echo ""
+        echo "⚠️  Note: Maven Central deployment is currently disabled"
+        echo "   Uncomment lines 70-77 in release.yml to enable deployment"

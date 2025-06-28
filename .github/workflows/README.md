@@ -16,17 +16,22 @@ Runs on every push and pull request to `main` and `develop` branches.
 
 ### Release Workflow (`release.yml`)
 
-Simple workflow that publishes the current version from `pom.xml` to Maven Central.
+Workflow for releasing stable versions from the main branch.
 
 **Triggers:**
-1. **Automatic on push to main**: Deploys whatever version is in pom.xml
+1. **Automatic on push to main**: Releases the version in pom.xml
 2. **Manual dispatch**: Run the workflow manually from Actions tab
 
+**Requirements:**
+- Version in pom.xml MUST be a release version (e.g., 1.0.0)
+- SNAPSHOT versions are NOT allowed on main branch
+- The workflow will fail if it detects a SNAPSHOT version
+
 **How it works:**
-1. Reads the current version from `pom.xml`
-2. If version is `X.Y.Z-SNAPSHOT`: Deploys to OSSRH Snapshots
-3. If version is `X.Y.Z`: Deploys to Maven Central and creates GitHub Release
-4. No version changes are made - you control versions manually in pom.xml
+1. Validates that version is NOT a SNAPSHOT
+2. Builds and signs the artifacts
+3. Creates a GitHub Release with tag
+4. Optionally deploys to Maven Central (when enabled)
 
 **Version Management:**
 You manually update the version in `pom.xml`:
@@ -50,17 +55,27 @@ git push origin main
 - `MAVEN_GPG_PRIVATE_KEY`: GPG private key for signing artifacts
 - `MAVEN_GPG_PASSPHRASE`: GPG key passphrase
 
-### Snapshot Workflow (`snapshot.yml`)
+## Development Workflow
 
-Deploys SNAPSHOT versions to OSSRH Snapshots repository.
+### Branch Strategy
 
-**Trigger:** Push to `develop` branch
+- **main**: Production releases only (no SNAPSHOT versions)
+- **develop**: Development work (can have SNAPSHOT versions)
+- **feature/***: Feature development branches
 
-**Process:**
-1. Verifies version is SNAPSHOT
-2. Runs tests
-3. Deploys to OSSRH Snapshots
-4. Comments on PR with snapshot usage instructions
+### Version Management
+
+1. **Development on develop branch**: Use SNAPSHOT versions
+   ```bash
+   # On develop branch
+   mvn versions:set -DnewVersion=1.0.1-SNAPSHOT
+   ```
+
+2. **Release from main branch**: Use release versions only
+   ```bash
+   # On main branch
+   mvn versions:set -DnewVersion=1.0.1
+   ```
 
 ## Setup Instructions
 
