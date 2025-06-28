@@ -520,24 +520,69 @@ logging:
     io.github.nnegi88.errormonitor: DEBUG
 ```
 
+## Development Workflow
+
+### Branch Strategy
+
+- **main**: Production-ready code, triggers automatic releases
+- **develop**: Integration branch for features, triggers snapshot deployments
+- **feature/***: Individual feature development
+
+### Development Process
+
+1. **Create feature branch from develop**:
+   ```bash
+   git checkout develop
+   git checkout -b feature/my-feature
+   ```
+
+2. **After feature completion, merge to develop**:
+   ```bash
+   git checkout develop
+   git merge feature/my-feature
+   git push origin develop
+   ```
+   - This automatically deploys a SNAPSHOT to OSSRH
+
+3. **When ready for release, merge to main**:
+   ```bash
+   git checkout main
+   git merge develop
+   git push origin main
+   ```
+   - This automatically releases to Maven Central
+
+### Snapshot Versions
+
+Snapshot versions from the `develop` branch are available at:
+```xml
+<repositories>
+    <repository>
+        <id>ossrh-snapshots</id>
+        <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
 ## Publishing to Maven Central
 
-This project is configured for publication to Maven Central. For maintainers:
+### Automated Publishing (Recommended)
 
-### Prerequisites
-1. **GPG Setup**: Install GPG and generate key for `nnegi88@gmail.com`
-2. **Central Portal Account**: Create account at https://central.sonatype.com
-3. **Namespace Verification**: GitHub account `nnegi88` automatically grants `io.github.nnegi88` namespace
-4. **Maven Configuration**: Configure `~/.m2/settings.xml` with Central Portal credentials
+The project automatically publishes to Maven Central when:
+- Code is pushed to `main` branch with a SNAPSHOT version
+- A GitHub Release is created
+- Manual workflow dispatch is triggered
 
-### Publication Commands
+### Manual Publishing
+
+For maintainers who need manual control:
+
 ```bash
-# Verify project is ready
-mvn clean test
-mvn clean verify -P release
-
 # Deploy to Maven Central
-mvn clean deploy -P release
+mvn clean deploy -P release -Dgpg.keyname=nnegi88@gmail.com
 ```
 
 ### Usage After Publication

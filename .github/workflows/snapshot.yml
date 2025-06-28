@@ -8,6 +8,8 @@ on:
       - '**.md'
       - '.github/**'
       - '!.github/workflows/snapshot.yml'
+  
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   deploy-snapshot:
