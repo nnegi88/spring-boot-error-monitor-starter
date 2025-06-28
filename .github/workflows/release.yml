@@ -74,7 +74,11 @@ jobs:
         ls -la target/*.jar
         
     - name: Deploy to Maven Central
-      run: mvn -P release -B central:publish
+      run: |
+        # First ensure all artifacts are built and installed
+        mvn install -P release -B -DskipTests
+        # Then publish to Maven Central
+        mvn org.sonatype.central:central-publishing-maven-plugin:0.4.0:publish -P release -B
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
