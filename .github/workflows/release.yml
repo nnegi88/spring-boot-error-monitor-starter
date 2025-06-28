@@ -17,6 +17,10 @@ jobs:
     permissions:
       contents: write
       packages: write
+    env:
+      MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+      MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+      MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
     
     steps:
     - uses: actions/checkout@v4
@@ -68,15 +72,9 @@ jobs:
         echo "✅ Release artifacts built successfully!"
         echo "📦 Artifacts:"
         ls -la target/*.jar
-      env:
-        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         
     - name: Deploy to Maven Central
       run: mvn deploy -P release -B -DskipTests
-      env:
-        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
