@@ -34,11 +34,6 @@ jobs:
                   http://maven.apache.org/xsd/settings-1.0.0.xsd">
           <servers>
             <server>
-              <id>ossrh</id>
-              <username>${{ secrets.OSSRH_USERNAME }}</username>
-              <password>${{ secrets.OSSRH_TOKEN }}</password>
-            </server>
-            <server>
               <id>central</id>
               <username>${{ secrets.OSSRH_USERNAME }}</username>
               <password>${{ secrets.OSSRH_TOKEN }}</password>
@@ -80,7 +75,7 @@ jobs:
 
     - name: Re-configure Maven Settings Before Deploy
       run: |
-        echo "Re-creating settings.xml to ensure it has ossrh server..."
+        echo "Re-creating settings.xml to ensure it has central server..."
         mkdir -p ~/.m2
         cat > ~/.m2/settings.xml << 'EOF'
         <?xml version="1.0" encoding="UTF-8"?>
@@ -90,7 +85,7 @@ jobs:
                   http://maven.apache.org/xsd/settings-1.0.0.xsd">
           <servers>
             <server>
-              <id>ossrh</id>
+              <id>central</id>
               <username>${{ secrets.OSSRH_USERNAME }}</username>
               <password>${{ secrets.OSSRH_TOKEN }}</password>
             </server>
@@ -100,8 +95,8 @@ jobs:
         
     - name: Deploy Snapshot to Maven Central
       run: |
-        # Disable central-publishing-maven-plugin for snapshots
-        mvn deploy -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}" -Dcentral.publish.skip=true
+        # The central-publishing-maven-plugin v0.8.0+ supports snapshots directly
+        mvn deploy -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
 
     - name: Deployment Summary
       if: success()
@@ -111,4 +106,4 @@ jobs:
         echo "📦 Artifacts deployed to Maven Central Snapshots repository"
         echo ""
         echo "📍 The snapshot will be available shortly at:"
-        echo "   https://s01.oss.sonatype.org/content/repositories/snapshots/io/github/nnegi88/spring-boot-error-monitor-starter/"
+        echo "   https://central.sonatype.com/repository/maven-snapshots/io/github/nnegi88/spring-boot-error-monitor-starter/"
