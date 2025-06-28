@@ -44,21 +44,9 @@ jobs:
               <username>${{ secrets.OSSRH_USERNAME }}</username>
               <password>${{ secrets.OSSRH_TOKEN }}</password>
             </server>
-            <server>
-              <id>github</id>
-              <username>nnegi88</username>
-              <password>${{ secrets.GITHUB_TOKEN }}</password>
-            </server>
           </servers>
         </settings>
         EOF
-        echo "Created settings.xml with central server configuration"
-        echo "Settings.xml location: ~/.m2/settings.xml"
-        echo "Verifying settings.xml exists:"
-        ls -la ~/.m2/settings.xml
-        echo "Settings.xml content (with masked passwords):"
-        cat ~/.m2/settings.xml | sed 's/<password>.*<\/password>/<password>***<\/password>/g'
-        
     - name: Import GPG Key
       run: |
         echo "${{ secrets.MAVEN_GPG_PRIVATE_KEY }}" | gpg --batch --import
@@ -71,29 +59,6 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
-
-    - name: Debug Secrets
-      run: |
-        echo "Checking if secrets are properly configured..."
-        echo "Note: Secrets cannot be directly printed for security reasons"
-        echo "OSSRH_USERNAME is configured: ${{ secrets.OSSRH_USERNAME != '' }}"
-        echo "OSSRH_TOKEN is configured: ${{ secrets.OSSRH_TOKEN != '' }}"
-        echo "MAVEN_GPG_PRIVATE_KEY is configured: ${{ secrets.MAVEN_GPG_PRIVATE_KEY != '' }}"
-        echo "MAVEN_GPG_PASSPHRASE is configured: ${{ secrets.MAVEN_GPG_PASSPHRASE != '' }}"
-
-    - name: Debug Maven Settings
-      run: |
-        echo "--- Checking settings.xml file ---"
-        echo "Settings.xml still exists?"
-        ls -la ~/.m2/settings.xml || echo "settings.xml not found!"
-        echo "Content of settings.xml:"
-        cat ~/.m2/settings.xml | sed 's/<password>.*<\/password>/<password>***<\/password>/g' || echo "Cannot read settings.xml"
-        echo "--- Maven Effective Settings ---"
-        mvn help:effective-settings -B
-        echo "--------------------------------"
-        echo "--- Checking for 'central' server specifically ---"
-        mvn help:effective-settings -B | grep -A 10 -B 2 "central" || echo "No 'central' server found in settings"
-        echo "--------------------------------"
 
     - name: Extract version from pom.xml
       id: version
@@ -142,8 +107,6 @@ jobs:
           </servers>
         </settings>
         EOF
-        echo "Verifying central server is in settings:"
-        grep -A 5 "<id>central</id>" ~/.m2/settings.xml || echo "ERROR: central server not found!"
         
     - name: Deploy to Maven Central
       run: |
