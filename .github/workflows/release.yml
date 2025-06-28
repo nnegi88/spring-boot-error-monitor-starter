@@ -28,11 +28,31 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
-        server-id: central
-        server-username: ${{ secrets.OSSRH_USERNAME }}
-        server-password: ${{ secrets.OSSRH_TOKEN }}
-        gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-        gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        
+    - name: Configure Maven Settings
+      run: |
+        mkdir -p ~/.m2
+        cat > ~/.m2/settings.xml << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                  http://maven.apache.org/xsd/settings-1.0.0.xsd">
+          <servers>
+            <server>
+              <id>central</id>
+              <username>${{ secrets.OSSRH_USERNAME }}</username>
+              <password>${{ secrets.OSSRH_TOKEN }}</password>
+            </server>
+          </servers>
+        </settings>
+        EOF
+        
+    - name: Import GPG Key
+      run: |
+        echo "${{ secrets.MAVEN_GPG_PRIVATE_KEY }}" | gpg --batch --import
+        # List keys to verify import
+        gpg --list-secret-keys
 
     - name: Cache Maven dependencies
       uses: actions/cache@v3
@@ -82,7 +102,7 @@ jobs:
 
     - name: Package Release Artifacts
       run: |
-        mvn package -P release -B -DskipTests
+        mvn package -P release -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
         echo "✅ Release artifacts built successfully!"
         echo "📦 Artifacts:"
         ls -la target/*.jar
@@ -90,7 +110,7 @@ jobs:
     - name: Deploy to Maven Central
       run: |
         # First ensure all artifacts are built and installed
-        mvn install -P release -B -DskipTests
+        mvn install -P release -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
         # Then publish to Maven Central
         mvn org.sonatype.central:central-publishing-maven-plugin:0.4.0:publish -P release -B
 
