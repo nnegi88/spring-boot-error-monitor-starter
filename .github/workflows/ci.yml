@@ -12,7 +12,6 @@ jobs:
     strategy:
       matrix:
         java-version: [11, 17]
-        spring-boot-version: [2.7.x, 3.0.x]
 
     steps:
     - uses: actions/checkout@v4
@@ -45,7 +44,7 @@ jobs:
         reporter: java-junit
 
     - name: Upload coverage to Codecov
-      if: matrix.java-version == '11' && matrix.spring-boot-version == '2.7.x'
+      if: matrix.java-version == '11'
       uses: codecov/codecov-action@v3
       with:
         file: target/site/jacoco/jacoco.xml
