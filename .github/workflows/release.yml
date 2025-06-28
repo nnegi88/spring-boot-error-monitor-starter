@@ -57,12 +57,22 @@ jobs:
     - name: Build and verify
       run: mvn clean verify -B
 
-    - name: Deploy to Maven Central
-      run: mvn deploy -P release -B -DskipTests
+    - name: Package Release Artifacts
+      run: |
+        mvn package -P release -B -DskipTests
+        echo "✅ Release artifacts built successfully!"
+        echo "📦 Artifacts:"
+        ls -la target/*.jar
       env:
-        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        
+    # Uncomment when OSSRH is configured
+    # - name: Deploy to Maven Central
+    #   run: mvn deploy -P release -B -DskipTests
+    #   env:
+    #     MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+    #     MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+    #     MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
     - name: Create GitHub Release
       if: steps.version.outputs.is_snapshot == 'false'

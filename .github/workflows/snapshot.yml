@@ -54,13 +54,22 @@ jobs:
       if: steps.check_version.outputs.is_snapshot == 'true'
       run: mvn clean verify -B
 
-    - name: Deploy SNAPSHOT to OSSRH
+    - name: Package SNAPSHOT
       if: steps.check_version.outputs.is_snapshot == 'true'
-      run: mvn deploy -B -DskipTests
-      env:
-        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+      run: |
+        mvn package -B -DskipTests -Dgpg.skip=true
+        echo "✅ SNAPSHOT artifacts built successfully!"
+        echo "📦 Artifacts:"
+        ls -la target/*.jar
+        
+    # Uncomment when OSSRH is configured
+    # - name: Deploy SNAPSHOT to OSSRH
+    #   if: steps.check_version.outputs.is_snapshot == 'true'
+    #   run: mvn deploy -B -DskipTests
+    #   env:
+    #     MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+    #     MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+    #     MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
     - name: Comment on PR
       if: github.event_name == 'pull_request'
