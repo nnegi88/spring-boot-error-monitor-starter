@@ -1,20 +1,23 @@
-name: Release
+name: Release to Maven Central
 
 on:
+  # Manual trigger
   workflow_dispatch:
-    inputs:
-      releaseVersion:
-        description: 'Release version'
-        required: true
-        type: string
-      nextVersion:
-        description: 'Next development version'
-        required: true
-        type: string
+  
+  # Automatic trigger on push to main
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/release.yml'
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Only run on main branch
+    if: github.ref == 'refs/heads/main'
     
     steps:
     - uses: actions/checkout@v4
@@ -32,11 +35,6 @@ jobs:
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-    - name: Configure Git
-      run: |
-        git config user.name "${{ github.actor }}"
-        git config user.email "${{ github.actor }}@users.noreply.github.com"
-
     - name: Cache Maven dependencies
       uses: actions/cache@v3
       with:
@@ -44,53 +42,70 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
-    - name: Update version to release
-      run: mvn versions:set -DnewVersion=${{ github.event.inputs.releaseVersion }} -B
-
-    - name: Commit release version
+    - name: Extract version from pom.xml
+      id: version
       run: |
-        git add pom.xml
-        git commit -m "Release version ${{ github.event.inputs.releaseVersion }}"
-        git tag -a v${{ github.event.inputs.releaseVersion }} -m "Release version ${{ github.event.inputs.releaseVersion }}"
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Current version: $VERSION"
+        
+        # Determine if this is a release or snapshot
+        if [[ $VERSION == *"-SNAPSHOT" ]]; then
+          echo "is_snapshot=true" >> $GITHUB_OUTPUT
+          echo "Version is a SNAPSHOT, will deploy to snapshots repository"
+        else
+          echo "is_snapshot=false" >> $GITHUB_OUTPUT
+          echo "Version is a release, will deploy to staging/release repository"
+        fi
 
     - name: Build and verify
       run: mvn clean verify -B
 
     - name: Deploy to Maven Central
-      run: mvn deploy -P release -B
+      run: mvn deploy -P release -B -DskipTests
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
-    - name: Update to next development version
-      run: |
-        mvn versions:set -DnewVersion=${{ github.event.inputs.nextVersion }} -B
-        git add pom.xml
-        git commit -m "Prepare for next development iteration"
-
-    - name: Push changes
-      run: |
-        git push origin main
-        git push origin v${{ github.event.inputs.releaseVersion }}
-
     - name: Create GitHub Release
+      if: steps.version.outputs.is_snapshot == 'false'
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v${{ github.event.inputs.releaseVersion }}
-        name: Release ${{ github.event.inputs.releaseVersion }}
+        tag_name: v${{ steps.version.outputs.version }}
+        name: Release ${{ steps.version.outputs.version }}
         body: |
-          ## What's Changed
+          ## Maven Central
           
-          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+          The library is now available on Maven Central:
           
-          ## Maven
+          ### Maven
           ```xml
           <dependency>
               <groupId>io.github.nnegi88</groupId>
               <artifactId>spring-boot-error-monitor-starter</artifactId>
-              <version>${{ github.event.inputs.releaseVersion }}</version>
+              <version>${{ steps.version.outputs.version }}</version>
           </dependency>
           ```
+          
+          ### Gradle
+          ```gradle
+          implementation 'io.github.nnegi88:spring-boot-error-monitor-starter:${{ steps.version.outputs.version }}'
+          ```
+          
+          ## Verification
+          
+          - [Maven Central](https://search.maven.org/artifact/io.github.nnegi88/spring-boot-error-monitor-starter/${{ steps.version.outputs.version }})
+          - [Repository](https://repo1.maven.org/maven2/io/github/nnegi88/spring-boot-error-monitor-starter/${{ steps.version.outputs.version }}/)
         draft: false
         prerelease: false
+        generate_release_notes: true
+
+    - name: Comment deployment status
+      if: success()
+      run: |
+        if [ "${{ steps.version.outputs.is_snapshot }}" == "true" ]; then
+          echo "✅ SNAPSHOT version ${{ steps.version.outputs.version }} deployed to OSSRH Snapshots"
+        else
+          echo "✅ Release version ${{ steps.version.outputs.version }} deployed to Maven Central"
+        fi

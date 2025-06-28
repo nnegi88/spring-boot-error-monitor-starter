@@ -184,8 +184,9 @@ public ErrorFilter customErrorFilter() {
 }
 ```
 
-### Custom Message Template
+### Custom Message Templates
 
+#### Custom Slack Template
 ```java
 @Bean
 public SlackMessageTemplate customSlackTemplate() {
@@ -195,6 +196,30 @@ public SlackMessageTemplate customSlackTemplate() {
             return SlackMessage.builder()
                 .text("🚨 Critical Error in " + event.getApplicationName())
                 .channel("#critical-alerts")
+                .build();
+        }
+    };
+}
+```
+
+#### Custom Teams Template
+```java
+@Bean
+public TeamsMessageTemplate customTeamsTemplate() {
+    return new TeamsMessageTemplate() {
+        @Override
+        public TeamsMessage buildMessage(ErrorEvent event) {
+            return TeamsMessage.builder()
+                .title("🚨 " + event.getEnvironment() + " Error Alert")
+                .themeColor("FF0000")
+                .addSection(section -> section
+                    .activityTitle(event.getException().getClass().getSimpleName())
+                    .activitySubtitle(event.getApplicationName())
+                    .addFact("Environment", event.getEnvironment())
+                    .addFact("Severity", event.getSeverity().toString())
+                    .addFact("Error Count", String.valueOf(event.getErrorCount()))
+                    .text(event.getMessage()))
+                .addAction("View Logs", "https://logs.company.com/" + event.getApplicationName())
                 .build();
         }
     };
@@ -290,19 +315,86 @@ if (trend.isSpike()) {
 Map<String, Object> summary = errorAnalytics.getAnalyticsSummary();
 ```
 
-## Setting Up Webhooks
+## Platform-Specific Configuration
 
-### Slack Webhook
+### Slack Integration
+
+#### Setting Up Slack Webhook
 1. Go to your Slack workspace settings
 2. Navigate to "Apps" → "Custom Integrations" → "Incoming Webhooks"
 3. Add a new webhook and copy the URL
 4. Set it as `SLACK_WEBHOOK_URL` environment variable
 
-### Microsoft Teams Webhook
-1. In Teams, right-click on the channel where you want notifications
-2. Select "Connectors" → "Incoming Webhook"
-3. Configure and copy the webhook URL
-4. Set it as `TEAMS_WEBHOOK_URL` environment variable
+#### Slack-Specific Configuration
+```yaml
+spring:
+  error-monitor:
+    notification:
+      platform: "slack"
+      slack:
+        webhook-url: ${SLACK_WEBHOOK_URL}
+        channel: "#alerts"          # Optional: Override default channel
+        username: "Error Monitor"   # Optional: Custom bot name
+        icon-emoji: ":warning:"     # Optional: Custom emoji icon
+```
+
+### Microsoft Teams Integration
+
+#### Setting Up Teams Webhook
+1. Open Microsoft Teams and navigate to the channel where you want to receive alerts
+2. Click the "..." menu next to the channel name
+3. Select "Connectors" → "Incoming Webhook"
+4. Configure the webhook:
+   - Give it a name (e.g., "Error Monitor")
+   - Upload an icon (optional)
+   - Click "Create"
+5. Copy the webhook URL
+6. Set it as `TEAMS_WEBHOOK_URL` environment variable
+
+#### Teams-Specific Configuration
+```yaml
+spring:
+  error-monitor:
+    notification:
+      platform: "teams"
+      teams:
+        webhook-url: ${TEAMS_WEBHOOK_URL}
+        title: "Application Error Alert"    # Optional: Custom card title
+        theme-color: "FF0000"              # Optional: Card accent color (hex)
+```
+
+### Using Both Platforms
+
+You can send notifications to both Slack and Teams simultaneously:
+
+```yaml
+spring:
+  error-monitor:
+    notification:
+      platform: "both"
+      slack:
+        webhook-url: ${SLACK_WEBHOOK_URL}
+        channel: "#alerts"
+      teams:
+        webhook-url: ${TEAMS_WEBHOOK_URL}
+        title: "Production Error"
+```
+
+## Message Format Examples
+
+### Slack Message Format
+Error notifications in Slack appear as rich formatted messages with:
+- Header with error type and timestamp
+- Contextual fields (application, environment, error type)
+- Formatted stack trace in code blocks
+- Request details (URL, method, user agent)
+
+### Teams Message Format
+Error notifications in Teams appear as adaptive cards with:
+- Color-coded header (red for errors)
+- Structured facts section with error details
+- Expandable stack trace section
+- Action buttons (optional, for viewing logs)
 
 ## Architecture & Design
 
@@ -428,24 +520,69 @@ logging:
     io.github.nnegi88.errormonitor: DEBUG
 ```
 
+## Development Workflow
+
+### Branch Strategy
+
+- **main**: Production-ready code, triggers automatic releases
+- **develop**: Integration branch for features, triggers snapshot deployments
+- **feature/***: Individual feature development
+
+### Development Process
+
+1. **Create feature branch from develop**:
+   ```bash
+   git checkout develop
+   git checkout -b feature/my-feature
+   ```
+
+2. **After feature completion, merge to develop**:
+   ```bash
+   git checkout develop
+   git merge feature/my-feature
+   git push origin develop
+   ```
+   - This automatically deploys a SNAPSHOT to OSSRH
+
+3. **When ready for release, merge to main**:
+   ```bash
+   git checkout main
+   git merge develop
+   git push origin main
+   ```
+   - This automatically releases to Maven Central
+
+### Snapshot Versions
+
+Snapshot versions from the `develop` branch are available at:
+```xml
+<repositories>
+    <repository>
+        <id>ossrh-snapshots</id>
+        <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
 ## Publishing to Maven Central
 
-This project is configured for publication to Maven Central. For maintainers:
+### Automated Publishing (Recommended)
 
-### Prerequisites
-1. **GPG Setup**: Install GPG and generate key for `nnegi88@gmail.com`
-2. **Central Portal Account**: Create account at https://central.sonatype.com
-3. **Namespace Verification**: GitHub account `nnegi88` automatically grants `io.github.nnegi88` namespace
-4. **Maven Configuration**: Configure `~/.m2/settings.xml` with Central Portal credentials
+The project automatically publishes to Maven Central when:
+- Code is pushed to `main` branch with a SNAPSHOT version
+- A GitHub Release is created
+- Manual workflow dispatch is triggered
 
-### Publication Commands
+### Manual Publishing
+
+For maintainers who need manual control:
+
 ```bash
-# Verify project is ready
-mvn clean test
-mvn clean verify -P release
-
 # Deploy to Maven Central
-mvn clean deploy -P release
+mvn clean deploy -P release -Dgpg.keyname=nnegi88@gmail.com
 ```
 
 ### Usage After Publication
@@ -463,6 +600,49 @@ Once published, users can include the dependency:
 After publication, verify at:
 - Maven Central: https://search.maven.org/artifact/io.github.nnegi88/spring-boot-error-monitor-starter
 - Repository: https://repo1.maven.org/maven2/io/github/nnegi88/spring-boot-error-monitor-starter/
+
+## Troubleshooting
+
+### Common Issues
+
+#### Teams Notifications Not Working
+1. **Verify webhook URL**: Ensure the Teams webhook URL is correctly formatted and active
+2. **Check firewall**: Ensure your application can reach Microsoft Teams endpoints
+3. **Test webhook**: Try sending a test message directly to the webhook:
+   ```bash
+   curl -H "Content-Type: application/json" -d '{"text": "Test message"}' YOUR_TEAMS_WEBHOOK_URL
+   ```
+4. **Enable debug logging**:
+   ```yaml
+   logging:
+     level:
+       io.github.nnegi88.errormonitor: DEBUG
+   ```
+
+#### Slack Notifications Not Working
+1. **Verify webhook URL**: Ensure the Slack webhook URL is valid
+2. **Check channel**: Verify the channel exists and the webhook has access
+3. **Test webhook**: Send a test message:
+   ```bash
+   curl -X POST -H 'Content-type: application/json' --data '{"text":"Test message"}' YOUR_SLACK_WEBHOOK_URL
+   ```
+
+#### Rate Limiting Issues
+- If notifications are being dropped, check your rate limiting configuration
+- Use the `/actuator/errorStatistics` endpoint to monitor rate limiting
+
+#### Platform Auto-Detection
+The library auto-detects the platform from webhook URL:
+- Slack: URLs containing `hooks.slack.com`
+- Teams: URLs containing `webhook.office.com` or `outlook.office.com`
+
+If auto-detection fails, explicitly set the platform:
+```yaml
+spring:
+  error-monitor:
+    notification:
+      platform: "teams"  # or "slack" or "both"
+```
 
 ## Security
 

@@ -24,7 +24,7 @@ Instead, please report security vulnerabilities through one of these methods:
    - Fill in the details of the vulnerability
 
 2. **Email**
-   - Send an email to: [security@nnegi88.dev](mailto:security@nnegi88.dev)
+   - Send an email to: [nnegi88@gmail.com](mailto:nnegi88@gmail.com)
    - Include "SECURITY" in the subject line
    - Provide detailed information about the vulnerability
 
@@ -127,7 +127,7 @@ Subscribe to our releases to stay informed about security updates:
 ## Contact
 
 For general security questions or concerns, please contact:
-- Email: [security@nnegi88.dev](mailto:security@nnegi88.dev)
+- Email: [nnegi88@gmail.com](mailto:nnegi88@gmail.com)
 - Security Advisory: [GitHub Security Advisories](https://github.com/nnegi88/spring-boot-error-monitor-starter/security/advisories)
 
 Thank you for helping keep Spring Boot Error Monitor Starter secure!
