@@ -1,0 +1,47 @@
+name: Test Release (No Signing)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Build and Package (No Signing)
+      run: |
+        mvn clean package -DskipTests -Dgpg.skip=true
+        echo "✅ Build successful!"
+        
+    - name: Display Artifacts
+      run: |
+        echo "📦 Built artifacts:"
+        ls -la target/*.jar
+        
+    - name: Check Version
+      run: |
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "📌 Current version: $VERSION"
+        
+        if [[ $VERSION == *"-SNAPSHOT" ]]; then
+          echo "ℹ️ This is a SNAPSHOT version"
+          echo "📍 Would deploy to: https://s01.oss.sonatype.org/content/repositories/snapshots"
+        else
+          echo "ℹ️ This is a release version"
+          echo "📍 Would deploy to: Maven Central"
+        fi
