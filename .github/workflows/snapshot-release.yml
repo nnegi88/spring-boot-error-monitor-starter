@@ -95,7 +95,8 @@ jobs:
         
     - name: Deploy Snapshot to Maven Central
       run: |
-        mvn deploy -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
+        # Disable central-publishing-maven-plugin for snapshots
+        mvn deploy -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}" -Dcentral.publish.skip=true
 
     - name: Deployment Summary
       if: success()
