@@ -1,0 +1,91 @@
+name: Question
+description: Ask a question about using the Spring Boot Error Monitor Starter
+title: "[Question]: "
+labels: ["question", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your question! Please provide as much detail as possible to help us assist you.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version of Spring Boot Error Monitor Starter are you using?
+      placeholder: e.g., 1.0.0
+    validations:
+      required: false
+
+  - type: dropdown
+    id: question-category
+    attributes:
+      label: Question Category
+      description: What is your question about?
+      options:
+        - Setup & Configuration
+        - Slack Integration
+        - Microsoft Teams Integration
+        - Error Detection
+        - Metrics & Analytics
+        - Performance
+        - Troubleshooting
+        - Best Practices
+        - Other
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: Please describe your question in detail
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide any relevant context about your setup, configuration, or what you're trying to achieve
+      placeholder: |
+        - Spring Boot version: 3.2.0
+        - Notification platform: Slack
+        - What I'm trying to do: ...
+
+  - type: textarea
+    id: attempted-solutions
+    attributes:
+      label: What have you tried?
+      description: Describe any solutions or approaches you've already attempted
+    validations:
+      required: false
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration (if relevant)
+      description: Please share your error monitor configuration if it's relevant to your question
+      render: yaml
+      placeholder: |
+        spring:
+          error-monitor:
+            enabled: true
+            # ... your configuration
+
+  - type: checkboxes
+    id: documentation
+    attributes:
+      label: Documentation
+      description: Have you checked the available documentation?
+      options:
+        - label: I have read the README.md
+        - label: I have checked the configuration examples
+        - label: I have looked at the demo application
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](../CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
