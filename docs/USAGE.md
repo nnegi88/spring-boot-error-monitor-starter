@@ -1,35 +1,12 @@
 # Using Spring Boot Error Monitor Starter
 
-## Quick Usage Options
+## Installation
 
-### Option 1: GitHub Packages (Recommended)
+### Maven Central (Primary Distribution)
 
-Once published, your team can use it without building:
+This library is available on Maven Central. Simply add the dependency to your project:
 
-#### 1. Add to your `~/.m2/settings.xml`:
-```xml
-<settings>
-  <servers>
-    <server>
-      <id>github</id>
-      <username>YOUR_GITHUB_USERNAME</username>
-      <password>YOUR_GITHUB_TOKEN</password>
-    </server>
-  </servers>
-</settings>
-```
-
-#### 2. Add repository to your project's `pom.xml`:
-```xml
-<repositories>
-  <repository>
-    <id>github</id>
-    <url>https://maven.pkg.github.com/nnegi88/spring-boot-error-monitor-starter</url>
-  </repository>
-</repositories>
-```
-
-#### 3. Add dependency:
+#### Maven
 ```xml
 <dependency>
     <groupId>io.github.nnegi88</groupId>
@@ -38,9 +15,16 @@ Once published, your team can use it without building:
 </dependency>
 ```
 
-### Option 2: JitPack (Public, No Auth Required)
+#### Gradle
+```gradle
+implementation 'io.github.nnegi88:spring-boot-error-monitor-starter:1.0.0'
+```
 
-Users can use your library directly from GitHub without any authentication:
+No additional repository configuration is needed as Maven Central is included by default in most build tools.
+
+### Alternative: JitPack
+
+If you need to use a specific commit or branch:
 
 ```xml
 <repositories>
@@ -57,9 +41,9 @@ Users can use your library directly from GitHub without any authentication:
 </dependency>
 ```
 
-### Option 3: Local JAR (Quick & Dirty)
+### Alternative: Local JAR
 
-Download the JAR from GitHub Releases and add directly:
+For offline usage, download the JAR from [GitHub Releases](https://github.com/nnegi88/spring-boot-error-monitor-starter/releases):
 
 ```xml
 <dependency>
