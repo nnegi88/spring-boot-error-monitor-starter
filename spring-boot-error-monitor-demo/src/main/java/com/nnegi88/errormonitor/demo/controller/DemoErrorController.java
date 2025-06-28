@@ -2,6 +2,7 @@ package com.nnegi88.errormonitor.demo.controller;
 
 import com.nnegi88.errormonitor.demo.exception.CustomExceptions.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.Map;
 import java.util.Random;
@@ -36,7 +37,7 @@ public class DemoErrorController {
         if (value == null || value.isEmpty()) {
             throw new IllegalArgumentException("Value parameter cannot be null or empty");
         }
-        return "Value: " + value;
+        return "Value: " + HtmlUtils.htmlEscape(value);
     }
     
     @GetMapping("/product-not-found/{id}")
