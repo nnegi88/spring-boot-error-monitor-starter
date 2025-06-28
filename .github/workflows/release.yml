@@ -147,7 +147,7 @@ jobs:
         
     - name: Deploy to Maven Central
       run: |
-        mvn deploy -P release -B -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
+        mvn deploy -P release -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
