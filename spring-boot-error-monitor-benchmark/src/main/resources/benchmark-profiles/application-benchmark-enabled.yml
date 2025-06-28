@@ -1,0 +1,9 @@
+# Enabled profile - Basic error monitoring enabled
+spring:
+  error-monitor:
+    enabled: true
+    
+    notification:
+      platform: "slack"
+      slack:
+        webhook-url: "http://localhost:9999/mock-webhook"

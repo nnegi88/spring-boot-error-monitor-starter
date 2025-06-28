@@ -1,0 +1,4 @@
+# Disabled profile - For baseline comparison
+spring:
+  error-monitor:
+    enabled: false

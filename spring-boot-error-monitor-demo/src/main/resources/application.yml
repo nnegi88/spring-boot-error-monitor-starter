@@ -1,0 +1,99 @@
+spring:
+  application:
+    name: error-monitor-demo
+  
+  # H2 Database Configuration
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+  # Error Monitor Configuration
+  error-monitor:
+    enabled: true
+    
+    notification:
+      # Options: "slack", "teams", or "both"
+      platform: "${ERROR_MONITOR_PLATFORM:both}"
+      
+      # Slack Configuration
+      slack:
+        webhook-url: "${SLACK_WEBHOOK_URL:https://hooks.slack.com/services/YOUR/WEBHOOK/URL}"
+        channel: "#error-monitor-demo"
+        username: "Error Monitor Demo"
+        icon-emoji: ":warning:"
+        
+      # Microsoft Teams Configuration  
+      teams:
+        webhook-url: "${TEAMS_WEBHOOK_URL:https://outlook.office.com/webhook/YOUR/WEBHOOK/URL}"
+        title: "Demo Application Error"
+        theme-color: "FF0000"
+        
+    filtering:
+      enabled-packages: ["com.nnegi88.errormonitor.demo"]
+      excluded-exceptions: []
+      minimum-severity: "WARN"
+      
+    rate-limiting:
+      max-errors-per-minute: 30
+      burst-limit: 10
+      
+    context:
+      include-request-details: true
+      include-stack-trace: true
+      max-stack-trace-lines: 20
+      mask-sensitive-data: true
+      
+    # Metrics Configuration
+    metrics:
+      enabled: true
+      tags: ["service:demo-app", "team:demo"]
+      
+    # Analytics Configuration
+    analytics:
+      enabled: true
+      retention-period: "1h"
+      aggregation-enabled: true
+      trend-analysis-enabled: true
+
+# Server Configuration
+server:
+  port: 8080
+  error:
+    include-stacktrace: always
+    include-message: always
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,errorMonitor,errorStatistics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      simple:
+        enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    com.nnegi88.errormonitor: DEBUG
+    com.nnegi88.errormonitor.demo: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

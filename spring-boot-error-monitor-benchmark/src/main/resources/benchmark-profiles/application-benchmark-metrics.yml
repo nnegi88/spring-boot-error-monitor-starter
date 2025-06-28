@@ -1,0 +1,25 @@
+# Metrics profile - Error monitoring with metrics enabled
+spring:
+  error-monitor:
+    enabled: true
+    
+    notification:
+      platform: "slack"
+      slack:
+        webhook-url: "http://localhost:9999/mock-webhook"
+        
+    rate-limiting:
+      max-errors-per-minute: 100
+      burst-limit: 10
+      
+    filtering:
+      minimum-severity: "ERROR"
+      
+    metrics:
+      enabled: true
+      tags:
+        - "service:benchmark"
+        - "environment:test"
+      
+    analytics:
+      enabled: false

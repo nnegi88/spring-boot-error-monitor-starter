@@ -1,0 +1,4 @@
+# Baseline profile - Error monitoring completely disabled
+spring:
+  error-monitor:
+    enabled: false
