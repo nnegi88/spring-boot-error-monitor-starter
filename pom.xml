@@ -245,6 +245,7 @@
             </plugin>
             
             <!-- Central Publishing Plugin (replaces Nexus Staging) -->
+            <!-- Uncomment when ready to publish to Maven Central
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
@@ -255,6 +256,7 @@
                     <autoRelease>false</autoRelease>
                 </configuration>
             </plugin>
+            -->
         </plugins>
     </build>
     
