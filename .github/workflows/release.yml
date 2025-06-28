@@ -74,7 +74,7 @@ jobs:
         ls -la target/*.jar
         
     - name: Deploy to Maven Central
-      run: mvn deploy -P release -B -DskipTests -Dcentral.skipPublishing=false
+      run: mvn -P release -B central:publish
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1

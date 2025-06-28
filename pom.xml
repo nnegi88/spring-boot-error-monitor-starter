@@ -244,6 +244,16 @@
                 </executions>
             </plugin>
             
+            <!-- Maven Deploy Plugin with skip -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            
             <!-- Central Publishing Plugin (replaces Nexus Staging) -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>
@@ -253,8 +263,16 @@
                 <configuration>
                     <publishingServerId>central</publishingServerId>
                     <autoRelease>false</autoRelease>
-                    <skipPublishing>true</skipPublishing>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>central-deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>publish</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
