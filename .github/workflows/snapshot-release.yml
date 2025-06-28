@@ -1,0 +1,108 @@
+name: Deploy Snapshot to Maven Central
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy-snapshot:
+    runs-on: ubuntu-latest
+    # Only run on develop branch
+    if: github.ref == 'refs/heads/develop'
+    permissions:
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        
+    - name: Configure Maven Settings
+      run: |
+        mkdir -p ~/.m2
+        cat > ~/.m2/settings.xml << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                  http://maven.apache.org/xsd/settings-1.0.0.xsd">
+          <servers>
+            <server>
+              <id>central</id>
+              <username>${{ secrets.OSSRH_USERNAME }}</username>
+              <password>${{ secrets.OSSRH_TOKEN }}</password>
+            </server>
+          </servers>
+        </settings>
+        EOF
+        
+    - name: Import GPG Key
+      run: |
+        echo "${{ secrets.MAVEN_GPG_PRIVATE_KEY }}" | gpg --batch --import
+        # List keys to verify import
+        gpg --list-secret-keys
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Verify version is SNAPSHOT
+      run: |
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "Current version: $VERSION"
+        
+        # Check if this is a SNAPSHOT version
+        if [[ $VERSION != *"-SNAPSHOT" ]]; then
+          echo "❌ ERROR: Develop branch should only contain SNAPSHOT versions!"
+          echo "Found non-SNAPSHOT version: $VERSION"
+          echo "Please update pom.xml to a SNAPSHOT version (e.g., 1.0.2-SNAPSHOT)"
+          exit 1
+        else
+          echo "✅ Version is a SNAPSHOT: $VERSION"
+        fi
+
+    - name: Build and verify
+      run: mvn clean verify -B
+
+    - name: Re-configure Maven Settings Before Deploy
+      run: |
+        echo "Re-creating settings.xml to ensure it has central server..."
+        mkdir -p ~/.m2
+        cat > ~/.m2/settings.xml << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                  http://maven.apache.org/xsd/settings-1.0.0.xsd">
+          <servers>
+            <server>
+              <id>central</id>
+              <username>${{ secrets.OSSRH_USERNAME }}</username>
+              <password>${{ secrets.OSSRH_TOKEN }}</password>
+            </server>
+          </servers>
+        </settings>
+        EOF
+        
+    - name: Deploy Snapshot to Maven Central
+      run: |
+        mvn deploy -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
+
+    - name: Deployment Summary
+      if: success()
+      run: |
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "✅ Snapshot version $VERSION deployed successfully!"
+        echo "📦 Artifacts deployed to Maven Central Snapshots repository"
+        echo ""
+        echo "📍 The snapshot will be available shortly at:"
+        echo "   https://s01.oss.sonatype.org/content/repositories/snapshots/io/github/nnegi88/spring-boot-error-monitor-starter/"

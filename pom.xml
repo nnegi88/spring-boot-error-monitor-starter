@@ -277,6 +277,14 @@
         </plugins>
     </build>
     
+    <!-- Distribution Management for Snapshots -->
+    <distributionManagement>
+        <snapshotRepository>
+            <id>central</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+    
     <!-- Profiles for Release -->
     <profiles>
         <profile>
