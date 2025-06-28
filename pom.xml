@@ -277,7 +277,7 @@
     <!-- Distribution Management for Snapshots -->
     <distributionManagement>
         <snapshotRepository>
-            <id>central</id>
+            <id>ossrh</id>
             <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>

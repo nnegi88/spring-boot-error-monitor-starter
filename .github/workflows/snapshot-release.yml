@@ -34,6 +34,11 @@ jobs:
                   http://maven.apache.org/xsd/settings-1.0.0.xsd">
           <servers>
             <server>
+              <id>ossrh</id>
+              <username>${{ secrets.OSSRH_USERNAME }}</username>
+              <password>${{ secrets.OSSRH_TOKEN }}</password>
+            </server>
+            <server>
               <id>central</id>
               <username>${{ secrets.OSSRH_USERNAME }}</username>
               <password>${{ secrets.OSSRH_TOKEN }}</password>
@@ -75,7 +80,7 @@ jobs:
 
     - name: Re-configure Maven Settings Before Deploy
       run: |
-        echo "Re-creating settings.xml to ensure it has central server..."
+        echo "Re-creating settings.xml to ensure it has ossrh server..."
         mkdir -p ~/.m2
         cat > ~/.m2/settings.xml << 'EOF'
         <?xml version="1.0" encoding="UTF-8"?>
@@ -85,7 +90,7 @@ jobs:
                   http://maven.apache.org/xsd/settings-1.0.0.xsd">
           <servers>
             <server>
-              <id>central</id>
+              <id>ossrh</id>
               <username>${{ secrets.OSSRH_USERNAME }}</username>
               <password>${{ secrets.OSSRH_TOKEN }}</password>
             </server>
