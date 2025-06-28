@@ -71,12 +71,13 @@ jobs:
       env:
         MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         
-    - name: Deploy to Maven Central
-      run: mvn deploy -P release -B -DskipTests
-      env:
-        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+    # Uncomment when OSSRH credentials are configured
+    # - name: Deploy to Maven Central
+    #   run: mvn deploy -P release -B -DskipTests
+    #   env:
+    #     MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+    #     MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+    #     MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
@@ -119,8 +120,7 @@ jobs:
       run: |
         echo "✅ Release version ${{ steps.version.outputs.version }} completed!"
         echo "📦 Artifacts built and signed successfully"
-        echo "📤 Published to Maven Central"
         echo "🏷️ GitHub Release created with tag v${{ steps.version.outputs.version }}"
         echo ""
-        echo "📍 The library will be available on Maven Central shortly:"
-        echo "   https://search.maven.org/artifact/io.github.nnegi88/spring-boot-error-monitor-starter/${{ steps.version.outputs.version }}"
+        echo "⚠️  Note: Maven Central deployment is pending OSSRH configuration"
+        echo "   To enable, configure OSSRH credentials and uncomment deployment steps"
