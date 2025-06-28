@@ -82,11 +82,16 @@ No additional setup needed. The workflow runs automatically.
    gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
    ```
 
-3. **Add GitHub Secrets:**
+3. **Set up Sonatype Account:**
+   - Create account at https://central.sonatype.com
+   - Sign up with GitHub (automatically verifies io.github.nnegi88)
+   - Generate User Token from Account → User Token
+
+4. **Add GitHub Secrets:**
    - Go to Settings → Secrets and variables → Actions
    - Add the following secrets:
      - `OSSRH_USERNAME`: Your Sonatype username
-     - `OSSRH_TOKEN`: Your Sonatype token (not password)
+     - `OSSRH_TOKEN`: Your Sonatype user token (not password)
      - `MAVEN_GPG_PRIVATE_KEY`: Content of private.key file
      - `MAVEN_GPG_PASSPHRASE`: Your GPG key passphrase
 
