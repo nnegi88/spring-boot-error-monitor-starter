@@ -16,25 +16,33 @@ Runs on every push and pull request to `main` and `develop` branches.
 
 ### Release Workflow (`release.yml`)
 
-Automated workflow for releasing to Maven Central with multiple trigger options.
+Simple workflow that publishes the current version from `pom.xml` to Maven Central.
 
 **Triggers:**
-1. **Automatic on push to main**: Releases if version is SNAPSHOT
-2. **Manual dispatch**: Specify exact release and next versions
-3. **GitHub Release creation**: Publishes existing release version
+1. **Automatic on push to main**: Deploys whatever version is in pom.xml
+2. **Manual dispatch**: Run the workflow manually from Actions tab
 
-**Automated Release Process:**
-When you push to `main` with a SNAPSHOT version (e.g., `1.0.0-SNAPSHOT`):
-1. Automatically removes `-SNAPSHOT` and creates release `1.0.0`
-2. Tags the release as `v1.0.0`
-3. Deploys to Maven Central
-4. Updates to next SNAPSHOT version (e.g., `1.0.1-SNAPSHOT`)
-5. Creates GitHub Release with notes
+**How it works:**
+1. Reads the current version from `pom.xml`
+2. If version is `X.Y.Z-SNAPSHOT`: Deploys to OSSRH Snapshots
+3. If version is `X.Y.Z`: Deploys to Maven Central and creates GitHub Release
+4. No version changes are made - you control versions manually in pom.xml
 
-**Manual Release Process:**
-Use workflow dispatch to specify exact versions:
-- Release Version: `1.2.0`
-- Next Version: `1.3.0-SNAPSHOT`
+**Version Management:**
+You manually update the version in `pom.xml`:
+```bash
+# For a release
+mvn versions:set -DnewVersion=1.0.0
+git add pom.xml
+git commit -m "Release version 1.0.0"
+git push origin main
+
+# For next development version
+mvn versions:set -DnewVersion=1.0.1-SNAPSHOT
+git add pom.xml
+git commit -m "Prepare next development version 1.0.1-SNAPSHOT"
+git push origin main
+```
 
 **Required Secrets:**
 - `OSSRH_USERNAME`: Sonatype OSSRH username
@@ -87,50 +95,70 @@ No additional setup needed. The workflow runs automatically.
    - Require PR reviews before merging
    - Require status checks to pass
 
-### Release Strategies
+### Release Process
 
-#### Strategy 1: Fully Automated (Recommended)
-1. Develop on feature branches
-2. Merge to `main` with SNAPSHOT version
-3. Workflow automatically releases and updates version
+#### For Releases:
+1. Update version in pom.xml to release version (remove -SNAPSHOT)
+2. Commit and push to main
+3. Workflow automatically:
+   - Deploys to Maven Central
+   - Creates GitHub Release with tag
+4. Update version to next SNAPSHOT
+5. Commit and push
 
-#### Strategy 2: Manual Control
-1. Use workflow dispatch from Actions tab
-2. Specify exact versions
-3. Useful for hotfixes or specific versioning needs
+#### For Snapshots:
+- Simply push to `develop` or `main` with SNAPSHOT version
+- Automatically deployed to OSSRH Snapshots
 
-#### Strategy 3: Tag-Based
-1. Create and push a tag (e.g., `v1.0.0`)
-2. Create GitHub Release from tag
-3. Workflow deploys the tagged version
+#### Example Release Flow:
+```bash
+# Currently on 1.0.0-SNAPSHOT
+# Ready to release 1.0.0
+
+# Step 1: Set release version
+mvn versions:set -DnewVersion=1.0.0
+git add pom.xml
+git commit -m "Release version 1.0.0"
+git push origin main
+
+# Wait for workflow to complete (deploys to Maven Central)
+
+# Step 2: Prepare next version
+mvn versions:set -DnewVersion=1.0.1-SNAPSHOT
+git add pom.xml
+git commit -m "Prepare next development version 1.0.1-SNAPSHOT"
+git push origin main
+```
 
 ## Version Management
 
 ### Version Conventions
 - Release versions: `1.0.0`, `1.1.0`, `2.0.0`
 - Snapshot versions: `1.0.0-SNAPSHOT`, `1.1.0-SNAPSHOT`
-- Version bumps on release:
-  - Patch: `1.0.0` → `1.0.1-SNAPSHOT`
-  - Minor: `1.0.0` → `1.1.0-SNAPSHOT` (manual)
-  - Major: `1.0.0` → `2.0.0-SNAPSHOT` (manual)
 
-### Changing Versions Manually
+### Version Update Commands
 ```bash
 # Set specific version
+mvn versions:set -DnewVersion=1.2.0
+
+# Set snapshot version
 mvn versions:set -DnewVersion=1.2.0-SNAPSHOT
 
-# Commit the change
-git add pom.xml
-git commit -m "Prepare version 1.2.0-SNAPSHOT"
-git push origin main
+# Revert version change (if not committed)
+mvn versions:revert
 ```
+
+### Version Strategy
+- **Patch releases** (1.0.0 → 1.0.1): Bug fixes
+- **Minor releases** (1.0.0 → 1.1.0): New features, backward compatible
+- **Major releases** (1.0.0 → 2.0.0): Breaking changes
 
 ## Troubleshooting
 
 ### Release Workflow Not Triggering
-- Check if version in `pom.xml` is SNAPSHOT
 - Verify you're pushing to `main` branch
 - Check workflow permissions in Settings
+- Ensure you have configured the required secrets
 
 ### GPG Signing Failures
 - Ensure GPG key is not expired
@@ -147,4 +175,5 @@ git push origin main
 - The CI workflow skips GPG signing to avoid requiring secrets for every build
 - The release workflow handles all GPG signing and Maven Central deployment
 - Snapshot deployments go to OSSRH snapshots repository
-- Release commits are prefixed with `[maven-release]` to prevent loops
+- Version management is fully manual - you control when and how versions change
+- GitHub Releases are automatically created for non-SNAPSHOT versions

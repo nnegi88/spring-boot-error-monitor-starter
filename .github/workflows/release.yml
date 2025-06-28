@@ -1,17 +1,8 @@
-name: Release
+name: Release to Maven Central
 
 on:
-  # Manual trigger with version inputs
+  # Manual trigger
   workflow_dispatch:
-    inputs:
-      releaseVersion:
-        description: 'Release version'
-        required: true
-        type: string
-      nextVersion:
-        description: 'Next development version'
-        required: true
-        type: string
   
   # Automatic trigger on push to main
   push:
@@ -21,24 +12,17 @@ on:
       - '**.md'
       - '.github/**'
       - '!.github/workflows/release.yml'
-  
-  # Automatic trigger on release creation
-  release:
-    types: [published]
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Only run on main branch and if not triggered by a bot
-    if: |
-      github.ref == 'refs/heads/main' && 
-      !contains(github.actor, '[bot]')
+    # Only run on main branch
+    if: github.ref == 'refs/heads/main'
     
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up JDK 11
       uses: actions/setup-java@v4
@@ -51,11 +35,6 @@ jobs:
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-    - name: Configure Git
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-
     - name: Cache Maven dependencies
       uses: actions/cache@v3
       with:
@@ -64,118 +43,69 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
 
     - name: Extract version from pom.xml
-      id: extract_version
+      id: version
       run: |
         VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-        echo "current_version=$VERSION" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Current version: $VERSION"
         
-        # Check if this is a SNAPSHOT version
+        # Determine if this is a release or snapshot
         if [[ $VERSION == *"-SNAPSHOT" ]]; then
           echo "is_snapshot=true" >> $GITHUB_OUTPUT
-          RELEASE_VERSION=${VERSION%-SNAPSHOT}
-          echo "release_version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
-          
-          # Calculate next development version
-          IFS='.' read -ra VERSION_PARTS <<< "$RELEASE_VERSION"
-          PATCH=$((${VERSION_PARTS[2]} + 1))
-          NEXT_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH-SNAPSHOT"
-          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "Version is a SNAPSHOT, will deploy to snapshots repository"
         else
           echo "is_snapshot=false" >> $GITHUB_OUTPUT
-          echo "release_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version is a release, will deploy to staging/release repository"
         fi
-
-    - name: Determine release version
-      id: versions
-      run: |
-        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          echo "release_version=${{ github.event.inputs.releaseVersion }}" >> $GITHUB_OUTPUT
-          echo "next_version=${{ github.event.inputs.nextVersion }}" >> $GITHUB_OUTPUT
-          echo "should_release=true" >> $GITHUB_OUTPUT
-        elif [ "${{ github.event_name }}" == "release" ]; then
-          TAG_NAME=${{ github.event.release.tag_name }}
-          RELEASE_VERSION=${TAG_NAME#v}
-          echo "release_version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
-          echo "should_release=true" >> $GITHUB_OUTPUT
-        elif [ "${{ steps.extract_version.outputs.is_snapshot }}" == "true" ]; then
-          # Automatic release from SNAPSHOT version
-          echo "release_version=${{ steps.extract_version.outputs.release_version }}" >> $GITHUB_OUTPUT
-          echo "next_version=${{ steps.extract_version.outputs.next_version }}" >> $GITHUB_OUTPUT
-          echo "should_release=true" >> $GITHUB_OUTPUT
-        else
-          echo "should_release=false" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Update version to release
-      if: steps.versions.outputs.should_release == 'true' && steps.extract_version.outputs.is_snapshot == 'true'
-      run: mvn versions:set -DnewVersion=${{ steps.versions.outputs.release_version }} -B -DgenerateBackupPoms=false
-
-    - name: Commit release version
-      if: steps.versions.outputs.should_release == 'true' && steps.extract_version.outputs.is_snapshot == 'true'
-      run: |
-        git add pom.xml
-        git commit -m "[maven-release] Release version ${{ steps.versions.outputs.release_version }}"
-        git tag -a v${{ steps.versions.outputs.release_version }} -m "Release version ${{ steps.versions.outputs.release_version }}"
 
     - name: Build and verify
-      if: steps.versions.outputs.should_release == 'true'
-      run: mvn clean verify -B -Dgpg.skip=false
+      run: mvn clean verify -B
 
     - name: Deploy to Maven Central
-      if: steps.versions.outputs.should_release == 'true'
       run: mvn deploy -P release -B -DskipTests
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
-    - name: Update to next development version
-      if: steps.versions.outputs.should_release == 'true' && steps.extract_version.outputs.is_snapshot == 'true' && github.event_name != 'release'
-      run: |
-        mvn versions:set -DnewVersion=${{ steps.versions.outputs.next_version }} -B -DgenerateBackupPoms=false
-        git add pom.xml
-        git commit -m "[maven-release] Prepare for next development iteration"
-
-    - name: Push changes
-      if: steps.versions.outputs.should_release == 'true' && steps.extract_version.outputs.is_snapshot == 'true'
-      run: |
-        git push origin main
-        git push origin v${{ steps.versions.outputs.release_version }}
-
     - name: Create GitHub Release
-      if: steps.versions.outputs.should_release == 'true' && github.event_name != 'release'
+      if: steps.version.outputs.is_snapshot == 'false'
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v${{ steps.versions.outputs.release_version }}
-        name: Release ${{ steps.versions.outputs.release_version }}
+        tag_name: v${{ steps.version.outputs.version }}
+        name: Release ${{ steps.version.outputs.version }}
         body: |
-          ## What's Changed
-          
-          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
-          
           ## Maven Central
           
-          The library is available on Maven Central:
+          The library is now available on Maven Central:
           
           ### Maven
           ```xml
           <dependency>
               <groupId>io.github.nnegi88</groupId>
               <artifactId>spring-boot-error-monitor-starter</artifactId>
-              <version>${{ steps.versions.outputs.release_version }}</version>
+              <version>${{ steps.version.outputs.version }}</version>
           </dependency>
           ```
           
           ### Gradle
           ```gradle
-          implementation 'io.github.nnegi88:spring-boot-error-monitor-starter:${{ steps.versions.outputs.release_version }}'
+          implementation 'io.github.nnegi88:spring-boot-error-monitor-starter:${{ steps.version.outputs.version }}'
           ```
           
           ## Verification
           
-          - [Maven Central](https://search.maven.org/artifact/io.github.nnegi88/spring-boot-error-monitor-starter/${{ steps.versions.outputs.release_version }})
-          - [Repository](https://repo1.maven.org/maven2/io/github/nnegi88/spring-boot-error-monitor-starter/${{ steps.versions.outputs.release_version }}/)
+          - [Maven Central](https://search.maven.org/artifact/io.github.nnegi88/spring-boot-error-monitor-starter/${{ steps.version.outputs.version }})
+          - [Repository](https://repo1.maven.org/maven2/io/github/nnegi88/spring-boot-error-monitor-starter/${{ steps.version.outputs.version }}/)
         draft: false
         prerelease: false
         generate_release_notes: true
+
+    - name: Comment deployment status
+      if: success()
+      run: |
+        if [ "${{ steps.version.outputs.is_snapshot }}" == "true" ]; then
+          echo "✅ SNAPSHOT version ${{ steps.version.outputs.version }} deployed to OSSRH Snapshots"
+        else
+          echo "✅ Release version ${{ steps.version.outputs.version }} deployed to Maven Central"
+        fi
