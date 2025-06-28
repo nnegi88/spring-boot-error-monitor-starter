@@ -147,10 +147,7 @@ jobs:
         
     - name: Deploy to Maven Central
       run: |
-        # First ensure all artifacts are built and installed
-        mvn install -P release -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
-        # Then publish to Maven Central
-        mvn org.sonatype.central:central-publishing-maven-plugin:0.4.0:publish -P release -B
+        mvn deploy -P release -B -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
