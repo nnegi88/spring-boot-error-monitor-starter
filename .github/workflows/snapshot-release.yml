@@ -95,8 +95,8 @@ jobs:
         
     - name: Deploy Snapshot to Maven Central
       run: |
-        # The central-publishing-maven-plugin v0.8.0+ supports snapshots directly
-        mvn deploy -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
+        # Use snapshot profile to deploy with maven-deploy-plugin
+        mvn deploy -P snapshot -B -DskipTests -Dgpg.passphrase="${{ secrets.MAVEN_GPG_PASSPHRASE }}"
 
     - name: Deployment Summary
       if: success()
