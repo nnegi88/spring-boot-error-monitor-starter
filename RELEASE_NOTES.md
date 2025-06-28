@@ -1,6 +1,6 @@
 # Release Notes
 
-## [1.0.1] - 2024-06-28
+## [1.0.1] - 2025-06-28
 
 ### Fixed
 - Maven Central deployment configuration
@@ -18,7 +18,7 @@
 - GitHub Packages configuration
 - Unnecessary scripts directory
 
-## [1.0.0] - 2024-06-27
+## [1.0.0] - 2025-06-27
 
 ### Initial Release
 - Core error monitoring functionality for Spring Boot applications
