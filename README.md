@@ -4,7 +4,7 @@
 [![CI Status](https://github.com/nnegi88/spring-boot-error-monitor-starter/workflows/CI/badge.svg)](https://github.com/nnegi88/spring-boot-error-monitor-starter/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java Version](https://img.shields.io/badge/Java-11%2B-blue.svg)](https://openjdk.java.net/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.5%2B-green.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.3%2B-green.svg)](https://spring.io/projects/spring-boot)
 
 A Spring Boot starter library that provides centralized error monitoring with flexible notification capabilities for any Spring Boot application. Automatically detects and reports errors via Slack or Microsoft Teams alerts.
 
@@ -34,8 +34,11 @@ A Spring Boot starter library that provides centralized error monitoring with fl
 ## Requirements
 
 - Java 11 or higher
-- Spring Boot 2.5 or higher
+- Spring Boot 2.3 or higher (minimum required for reactor-core 3.3.4+)
+  - **Recommended**: Spring Boot 2.5+ for best compatibility
+  - **Note**: Spring Boot 2.1.x and below are NOT supported due to missing Retry class
 - Spring WebFlux (for async HTTP clients)
+- Reactor Core 3.3.4 or higher (included with Spring Boot 2.3+)
 
 ## Installation
 
@@ -91,6 +94,21 @@ For offline usage, download the JAR from [GitHub Releases](https://github.com/nn
     <systemPath>${project.basedir}/lib/spring-boot-error-monitor-starter-1.0.1.jar</systemPath>
 </dependency>
 ```
+
+## ⚠️ Spring Boot Version Compatibility
+
+**IMPORTANT**: This library requires **Spring Boot 2.3 or higher**.
+
+If you're using Spring Boot 2.1.x or 2.2.x, you will encounter:
+```
+NoClassDefFoundError: reactor/util/retry/Retry
+```
+
+This is because the `Retry` class was introduced in reactor-core 3.3.4, which comes with Spring Boot 2.3+.
+
+For older Spring Boot versions, you must either:
+1. Upgrade to Spring Boot 2.3+ (recommended)
+2. Override reactor-core version manually (not recommended, may cause compatibility issues)
 
 ## Quick Start
 
@@ -567,6 +585,29 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
    - Ensure Micrometer is on the classpath
    - Check metrics.enabled is true
    - Verify your metrics backend is configured
+
+4. **NoClassDefFoundError: reactor/util/retry/Retry**
+   - This error occurs when using an older version of Spring Boot (< 2.3) which includes reactor-core < 3.3.4
+   - The `Retry` class was introduced in reactor-core 3.3.4
+   - **Solution**: Check for dependency conflicts using:
+     ```bash
+     mvn dependency:tree -Dverbose | grep reactor-core
+     ```
+   - If you find conflicting versions, exclude the older reactor-core:
+     ```xml
+     <dependency>
+         <groupId>conflicting-dependency</groupId>
+         <artifactId>conflicting-artifact</artifactId>
+         <version>x.x.x</version>
+         <exclusions>
+             <exclusion>
+                 <groupId>io.projectreactor</groupId>
+                 <artifactId>reactor-core</artifactId>
+             </exclusion>
+         </exclusions>
+     </dependency>
+     ```
+   - Minimum supported Spring Boot version is 2.3.x which includes reactor-core 3.3.4+
 
 ### Debug Mode
 
