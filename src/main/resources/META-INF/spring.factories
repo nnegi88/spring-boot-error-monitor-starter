@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.github.nnegi88.errormonitor.config.ErrorMonitorAutoConfiguration
+io.github.nnegi88.errormonitor.application.config.SolidNotificationAutoConfiguration,\
+io.github.nnegi88.errormonitor.application.config.LogbackAppenderConfiguration

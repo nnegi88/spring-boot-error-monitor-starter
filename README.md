@@ -1,745 +1,295 @@
-# Spring Boot Error Monitor Starter
+# Spring Boot Logback Alerting Starter
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.nnegi88/spring-boot-error-monitor-starter.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.nnegi88%22%20AND%20a:%22spring-boot-error-monitor-starter%22)
-[![CI Status](https://github.com/nnegi88/spring-boot-error-monitor-starter/workflows/CI/badge.svg)](https://github.com/nnegi88/spring-boot-error-monitor-starter/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java Version](https://img.shields.io/badge/Java-11%2B-blue.svg)](https://openjdk.java.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.3%2B-green.svg)](https://spring.io/projects/spring-boot)
 
-A Spring Boot starter library that provides centralized error monitoring with flexible notification capabilities for any Spring Boot application. Automatically detects and reports errors via Slack or Microsoft Teams alerts.
-
-## Why Use Spring Boot Error Monitor Starter?
-
-- **Zero-Code Integration**: Just add the dependency and configure webhooks - no code changes required
-- **Instant Visibility**: Get notified about production errors in real-time via Slack/Teams
-- **Performance First**: Minimal overhead (<2ms per request) with async processing
-- **Enterprise Ready**: Production-tested with rate limiting, metrics, and health checks
-- **Smart Filtering**: Reduce noise with configurable error filtering and aggregation
-- **Full Context**: Rich error details including stack traces, request info, and custom context
+A SOLID-compliant Spring Boot starter providing extensible Logback appenders for sending log alerts to Slack and Microsoft Teams. Built with clean architecture principles for maximum maintainability and extensibility.
 
 ## Features
 
-- 🚨 Automatic error detection and reporting
-- 📱 Multi-platform support (Slack & Microsoft Teams)
-- 🔧 Zero-code integration with Spring Boot applications
-- 🎯 Configurable error filtering and rate limiting
-- 📊 Rich error context including stack traces and request details
-- ⚡ Asynchronous processing for minimal performance impact
-- 🛡️ Built-in security features for sensitive data masking
-- 📈 Metrics collection with Micrometer integration
-- 🏥 Health check endpoints for monitoring
-- 📊 Advanced error analytics and trend detection
-- 🎛️ Management endpoints via Spring Boot Actuator
-
-## Requirements
-
-- Java 11 or higher
-- Spring Boot 2.3 or higher (minimum required for reactor-core 3.3.4+)
-  - **Recommended**: Spring Boot 2.5+ for best compatibility
-  - **Note**: Spring Boot 2.1.x and below are NOT supported due to missing Retry class
-- Spring WebFlux (for async HTTP clients)
-- Reactor Core 3.3.4 or higher (included with Spring Boot 2.3+)
-
-## Installation
-
-### Maven Central (Primary Distribution)
-
-This library is available on Maven Central. Simply add the dependency to your project:
-
-#### Maven
-```xml
-<dependency>
-    <groupId>io.github.nnegi88</groupId>
-    <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>1.0.1</version>
-</dependency>
-```
-
-#### Gradle
-```gradle
-implementation 'io.github.nnegi88:spring-boot-error-monitor-starter:1.0.1'
-```
-
-No additional repository configuration is needed as Maven Central is included by default in most build tools.
-
-### Alternative: JitPack
-
-If you need to use a specific commit or branch:
-
-```xml
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-
-<dependency>
-    <groupId>com.github.nnegi88</groupId>
-    <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>v1.0.1</version> <!-- or use commit hash -->
-</dependency>
-```
-
-### Alternative: Local JAR
-
-For offline usage, download the JAR from [GitHub Releases](https://github.com/nnegi88/spring-boot-error-monitor-starter/releases):
-
-```xml
-<dependency>
-    <groupId>io.github.nnegi88</groupId>
-    <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>1.0.1</version>
-    <scope>system</scope>
-    <systemPath>${project.basedir}/lib/spring-boot-error-monitor-starter-1.0.1.jar</systemPath>
-</dependency>
-```
-
-## ⚠️ Spring Boot Version Compatibility
-
-**IMPORTANT**: This library requires **Spring Boot 2.3 or higher**.
-
-If you're using Spring Boot 2.1.x or 2.2.x, you will encounter:
-```
-NoClassDefFoundError: reactor/util/retry/Retry
-```
-
-This is because the `Retry` class was introduced in reactor-core 3.3.4, which comes with Spring Boot 2.3+.
-
-For older Spring Boot versions, you must either:
-1. Upgrade to Spring Boot 2.3+ (recommended)
-2. Override reactor-core version manually (not recommended, may cause compatibility issues)
+- 🏗️ **SOLID Architecture** - Clean, maintainable, and extensible design
+- 📢 **Slack Integration** - Rich message formatting with Block Kit
+- 📧 **Teams Integration** - Adaptive Cards with color-coded alerts  
+- ⚡ **Async Processing** - Non-blocking delivery with configurable thread pools
+- 🚦 **Rate Limiting** - Built-in protection against notification flooding
+- 🔍 **MDC Support** - Contextual information from Mapped Diagnostic Context
+- 🎯 **Dependency Injection** - Full Spring integration with interface-based design
+- 🔌 **Extensible** - Easy to add new notification platforms
+- 🚀 **High Performance** - Optimized for low-latency, high-throughput scenarios
 
 ## Quick Start
 
-### Configure Your Application
+### 1. Add Dependency
 
-Add the following to your `application.yml`:
-
-```yaml
-spring:
-  error-monitor:
-    enabled: true
-    notification:
-      platform: "slack" # Options: "slack", "teams", "both"
-      
-      # Slack Configuration
-      slack:
-        webhook-url: ${SLACK_WEBHOOK_URL}
-        channel: "#alerts"
-        username: "Error Monitor"
-        icon-emoji: ":warning:"
-        
-      # Microsoft Teams Configuration  
-      teams:
-        webhook-url: ${TEAMS_WEBHOOK_URL}
-        title: "Application Error Alert"
-        theme-color: "FF0000"
+```xml
+<dependency>
+    <groupId>io.github.nnegi88</groupId>
+    <artifactId>spring-boot-error-monitor-starter</artifactId>
+    <version>1.0.2</version>
+</dependency>
 ```
 
-### That's It!
+### 2. Configure Slack
 
-The library will automatically start monitoring your application for errors and send notifications to your configured platform.
-
-## Configuration Reference
-
-### Basic Configuration
-
-| Property | Description | Default |
-|----------|-------------|---------|
-| `spring.error-monitor.enabled` | Enable/disable error monitoring | `true` |
-| `spring.error-monitor.notification.platform` | Notification platform | `slack` |
-
-### Filtering Configuration
-
-```yaml
-spring:
-  error-monitor:
-    filtering:
-      enabled-packages: ["com.yourcompany"]
-      excluded-exceptions: ["java.lang.IllegalArgumentException"]
-      minimum-severity: "ERROR"
+```properties
+# Enable Slack alerting
+logback.slack.enabled=true
+logback.slack.webhook-url=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+logback.slack.minimum-level=ERROR
 ```
 
-### Rate Limiting
+### 3. Configure Teams (Optional)
 
-```yaml
-spring:
-  error-monitor:
-    rate-limiting:
-      max-errors-per-minute: 10
-      burst-limit: 5
+```properties
+# Enable Teams alerting
+logback.teams.enabled=true
+logback.teams.webhook-url=https://outlook.office.com/webhook/YOUR/WEBHOOK/URL
+logback.teams.minimum-level=ERROR
 ```
 
-### Context Configuration
-
-```yaml
-spring:
-  error-monitor:
-    context:
-      include-request-details: true
-      include-stack-trace: true
-      max-stack-trace-lines: 20
-      mask-sensitive-data: true
-```
-
-### Metrics Configuration
-
-```yaml
-spring:
-  error-monitor:
-    metrics:
-      enabled: true
-      tags: ["service:my-app", "team:backend"]
-```
-
-### Analytics Configuration
-
-```yaml
-spring:
-  error-monitor:
-    analytics:
-      enabled: true
-      retention-period: "7d"
-      aggregation-enabled: true
-      trend-analysis-enabled: true
-```
-
-## Programmatic Usage
-
-You can also report errors programmatically:
+### 4. Start Logging
 
 ```java
-@Autowired
-private ErrorMonitor errorMonitor;
-
-public void processData() {
-    try {
-        // your business logic
-    } catch (Exception e) {
-        errorMonitor.reportError("Data processing failed", e)
-            .withContext("userId", getCurrentUserId())
-            .withSeverity(ErrorSeverity.HIGH)
-            .send();
+@Component
+public class MyService {
+    private static final Logger logger = LoggerFactory.getLogger(MyService.class);
+    
+    public void doSomething() {
+        try {
+            // Your code here
+        } catch (Exception e) {
+            logger.error("Something went wrong!", e);
+            // This will automatically send to Slack/Teams
+        }
     }
 }
 ```
 
-## Custom Configuration
+## Configuration Reference
 
-### Custom Error Filter
+### Slack Properties
+
+| Property | Description | Default |
+|----------|-------------|---------|
+| `logback.slack.enabled` | Enable Slack appender | `false` |
+| `logback.slack.webhook-url` | Slack webhook URL (required) | - |
+| `logback.slack.application-name` | Application name in messages | `${spring.application.name}` |
+| `logback.slack.environment` | Environment name in messages | `${spring.profiles.active}` |
+| `logback.slack.minimum-level` | Minimum log level to send | `ERROR` |
+| `logback.slack.include-stack-trace` | Include stack traces | `true` |
+| `logback.slack.connection-timeout` | Connection timeout (ms) | `5000` |
+| `logback.slack.read-timeout` | Read timeout (ms) | `5000` |
+| `logback.slack.async` | Enable async processing | `true` |
+| `logback.slack.queue-size` | Async queue size | `256` |
+| `logback.slack.rate-limit-enabled` | Enable rate limiting | `true` |
+| `logback.slack.max-messages-per-minute` | Max messages per minute | `10` |
+
+### Teams Properties
+
+| Property | Description | Default |
+|----------|-------------|---------|
+| `logback.teams.enabled` | Enable Teams appender | `false` |
+| `logback.teams.webhook-url` | Teams webhook URL (required) | - |
+| `logback.teams.application-name` | Application name in messages | `${spring.application.name}` |
+| `logback.teams.environment` | Environment name in messages | `${spring.profiles.active}` |
+| `logback.teams.minimum-level` | Minimum log level to send | `ERROR` |
+| `logback.teams.include-stack-trace` | Include stack traces | `true` |
+| `logback.teams.theme-color` | Card theme color (hex) | `FF0000` |
+| `logback.teams.connection-timeout` | Connection timeout (ms) | `5000` |
+| `logback.teams.read-timeout` | Read timeout (ms) | `5000` |
+| `logback.teams.async` | Enable async processing | `true` |
+| `logback.teams.queue-size` | Async queue size | `256` |
+| `logback.teams.rate-limit-enabled` | Enable rate limiting | `true` |
+| `logback.teams.max-messages-per-minute` | Max messages per minute | `10` |
+
+## Advanced Usage
+
+### Using with logback-spring.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="UNIFIED_NOTIFICATIONS" class="io.github.nnegi88.errormonitor.logback.UnifiedNotificationAppender">
+        <!-- Configuration is handled via Spring properties -->
+    </appender>
+    
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="UNIFIED_NOTIFICATIONS" />
+    </root>
+</configuration>
+```
+
+### Custom Notification Service
 
 ```java
-@Bean
-public ErrorFilter customErrorFilter() {
-    return new ErrorFilter() {
-        @Override
-        public boolean shouldReport(ErrorEvent event) {
-            return !event.getException().getMessage().contains("benign");
-        }
-    };
+@Component
+public class DiscordNotificationService implements NotificationService {
+    
+    @Override
+    public CompletableFuture<NotificationResult> sendNotification(NotificationMessage message) {
+        // Custom Discord implementation
+        return CompletableFuture.completedFuture(NotificationResult.success("discord"));
+    }
+    
+    @Override
+    public boolean supports(NotificationConfig config) {
+        return config.getWebhookUrl().contains("discord.com");
+    }
+    
+    @Override
+    public String getServiceName() {
+        return "discord";
+    }
 }
 ```
 
-### Custom Message Templates
+### Using MDC for Context
 
-#### Custom Slack Template
 ```java
-@Bean
-public SlackMessageTemplate customSlackTemplate() {
-    return new SlackMessageTemplate() {
-        @Override
-        public SlackMessage buildMessage(ErrorEvent event) {
-            return SlackMessage.builder()
-                .text("🚨 Critical Error in " + event.getApplicationName())
-                .channel("#critical-alerts")
-                .build();
-        }
-    };
+import org.slf4j.MDC;
+
+public void processUser(String userId) {
+    MDC.put("userId", userId);
+    MDC.put("operation", "processUser");
+    
+    try {
+        // Your code here
+    } catch (Exception e) {
+        logger.error("Failed to process user", e);
+        // MDC context will be included in the alert
+    } finally {
+        MDC.clear();
+    }
 }
 ```
 
-#### Custom Teams Template
-```java
-@Bean
-public TeamsMessageTemplate customTeamsTemplate() {
-    return new TeamsMessageTemplate() {
-        @Override
-        public TeamsMessage buildMessage(ErrorEvent event) {
-            return TeamsMessage.builder()
-                .title("🚨 " + event.getEnvironment() + " Error Alert")
-                .themeColor("FF0000")
-                .addSection(section -> section
-                    .activityTitle(event.getException().getClass().getSimpleName())
-                    .activitySubtitle(event.getApplicationName())
-                    .addFact("Environment", event.getEnvironment())
-                    .addFact("Severity", event.getSeverity().toString())
-                    .addFact("Error Count", String.valueOf(event.getErrorCount()))
-                    .text(event.getMessage()))
-                .addAction("View Logs", "https://logs.company.com/" + event.getApplicationName())
-                .build();
-        }
-    };
-}
-```
+## Message Formats
 
-## Advanced Features
+### Slack Format
+Messages are sent using Slack's Block Kit format with:
+- Header with log level
+- Application and environment info
+- Log message
+- Stack trace (if enabled)
+- MDC context fields
 
-### Metrics with Micrometer
+### Teams Format
+Messages are sent as Adaptive Cards with:
+- Color-coded by log level (Red=ERROR, Orange=WARN, Blue=INFO)
+- Structured facts for easy reading
+- Collapsible stack traces
+- MDC context as additional facts
 
-The library automatically collects metrics that can be exported to any monitoring system supported by Micrometer:
+## Setting Up Webhooks
 
-```java
-// Access metrics via MeterRegistry
-@Autowired
-private MeterRegistry meterRegistry;
-
-// Available metrics:
-// - error.monitor.errors.total (Counter) - Total number of errors by type and severity
-// - error.monitor.notifications (Counter) - Notification attempts by platform and status
-// - error.monitor.processing.time (Timer) - Time taken to process errors
-// - error.monitor.rate.limited (Counter) - Number of rate-limited errors
-```
-
-Example Prometheus queries:
-```promql
-# Error rate by type
-rate(error_monitor_errors_total[5m])
-
-# Notification success rate
-rate(error_monitor_notifications_total{status="success"}[5m]) /
-rate(error_monitor_notifications_total[5m])
-```
-
-### Health Checks
-
-Health endpoints are automatically available via Spring Boot Actuator:
-
-```bash
-# Check error monitor health
-GET /actuator/health/errorMonitor
-
-# Check webhook connectivity
-GET /actuator/health/notificationWebhooks
-```
-
-### Management Endpoints
-
-Control and monitor the error monitor at runtime:
-
-```bash
-# View current status and statistics
-GET /actuator/errorMonitor
-
-# Temporarily disable/enable monitoring
-POST /actuator/errorMonitor
-{
-  "enable": false
-}
-
-# Reset statistics
-DELETE /actuator/errorMonitor
-
-# View detailed error statistics
-GET /actuator/errorStatistics
-
-# Get statistics for specific error type
-GET /actuator/errorStatistics/NullPointerException
-```
-
-### Error Analytics
-
-Access advanced analytics programmatically:
-
-```java
-@Autowired
-private ErrorAnalytics errorAnalytics;
-
-// Get top error groups
-List<ErrorGroup> topErrors = errorAnalytics.getTopErrorGroups(10);
-
-// Analyze error trends
-ErrorTrend trend = errorAnalytics.getErrorTrend(
-    Instant.now().minus(1, ChronoUnit.HOURS),
-    Instant.now()
-);
-
-if (trend.isSpike()) {
-    // Handle error spike
-}
-
-// Get analytics summary
-Map<String, Object> summary = errorAnalytics.getAnalyticsSummary();
-```
-
-## Platform-Specific Configuration
-
-### Slack Integration
-
-#### Setting Up Slack Webhook
+### Slack Webhook Setup
 1. Go to your Slack workspace settings
 2. Navigate to "Apps" → "Custom Integrations" → "Incoming Webhooks"
-3. Add a new webhook and copy the URL
-4. Set it as `SLACK_WEBHOOK_URL` environment variable
+3. Add a new webhook and select the channel
+4. Copy the webhook URL
+5. Set it in your application properties
 
-#### Slack-Specific Configuration
-```yaml
-spring:
-  error-monitor:
-    notification:
-      platform: "slack"
-      slack:
-        webhook-url: ${SLACK_WEBHOOK_URL}
-        channel: "#alerts"          # Optional: Override default channel
-        username: "Error Monitor"   # Optional: Custom bot name
-        icon-emoji: ":warning:"     # Optional: Custom emoji icon
-```
-
-### Microsoft Teams Integration
-
-#### Setting Up Teams Webhook
-1. Open Microsoft Teams and navigate to the channel where you want to receive alerts
-2. Click the "..." menu next to the channel name
-3. Select "Connectors" → "Incoming Webhook"
-4. Configure the webhook:
-   - Give it a name (e.g., "Error Monitor")
-   - Upload an icon (optional)
-   - Click "Create"
+### Teams Webhook Setup
+1. Open Microsoft Teams and navigate to your channel
+2. Click the "..." menu → "Connectors"
+3. Search for "Incoming Webhook" and add it
+4. Give it a name and optional icon
 5. Copy the webhook URL
-6. Set it as `TEAMS_WEBHOOK_URL` environment variable
+6. Set it in your application properties
 
-#### Teams-Specific Configuration
-```yaml
-spring:
-  error-monitor:
-    notification:
-      platform: "teams"
-      teams:
-        webhook-url: ${TEAMS_WEBHOOK_URL}
-        title: "Application Error Alert"    # Optional: Custom card title
-        theme-color: "FF0000"              # Optional: Card accent color (hex)
-```
+## Best Practices
 
-### Using Both Platforms
-
-You can send notifications to both Slack and Teams simultaneously:
-
-```yaml
-spring:
-  error-monitor:
-    notification:
-      platform: "both"
-      slack:
-        webhook-url: ${SLACK_WEBHOOK_URL}
-        channel: "#alerts"
-      teams:
-        webhook-url: ${TEAMS_WEBHOOK_URL}
-        title: "Production Error"
-```
-
-## Message Format Examples
-
-### Slack Message Format
-Error notifications in Slack appear as rich formatted messages with:
-- Header with error type and timestamp
-- Contextual fields (application, environment, error type)
-- Formatted stack trace in code blocks
-- Request details (URL, method, user agent)
-
-### Teams Message Format
-Error notifications in Teams appear as adaptive cards with:
-- Color-coded header (red for errors)
-- Structured facts section with error details
-- Expandable stack trace section
-- Action buttons (optional, for viewing logs)
-
-## Architecture & Design
-
-### Key Design Decisions
-
-- **Async Processing**: All notifications are sent asynchronously to avoid blocking application threads
-- **Rate Limiting**: Built-in rate limiting prevents notification spam with configurable thresholds
-- **Platform Detection**: Automatically detects Slack vs Teams from webhook URL format
-- **Metrics Optional**: Micrometer integration is optional via conditional beans
-- **Health Checks**: Provides detailed health status including webhook connectivity
-- **Analytics Storage**: In-memory storage with configurable retention period
-
-### Project Structure
-
-```
-io.github.nnegi88.errormonitor/
-├── analytics/          # Error aggregation and trend analysis
-├── config/            # Auto-configuration and properties
-├── core/              # Core error monitoring logic
-├── filter/            # Error filtering and rate limiting
-├── health/            # Spring Boot health indicators
-├── interceptor/       # Error interception mechanisms
-├── management/        # Actuator endpoints
-├── metrics/           # Micrometer metrics integration
-├── model/             # Domain models
-├── notification/      # Slack/Teams notification clients
-│   ├── slack/
-│   ├── teams/
-│   └── template/
-└── util/              # Utility classes
-```
-
-## Demo Application
-
-Try out the error monitor with our interactive demo application:
-
-```bash
-# Clone and run the demo
-cd spring-boot-error-monitor-demo
-mvn spring-boot:run
-```
-
-Visit `http://localhost:8080` to:
-- Trigger different types of errors
-- See real-time error notifications
-- Explore the monitoring dashboard
-- Test various error scenarios
-
-## Development
-
-### When to Build
-
-You only need to build when:
-1. **Making changes** to the library
-2. **Testing locally** before publishing
-3. **Contributing** to the project
-
-### Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/nnegi88/spring-boot-error-monitor-starter.git
-cd spring-boot-error-monitor-starter
-
-# One-time setup
-mvn clean install
-
-# Run tests
-mvn test
-
-# Run specific test class
-mvn test -Dtest=ErrorMonitorHealthIndicatorTest
-
-# Build without tests
-mvn clean install -DskipTests
-
-# Use file watching for auto-rebuild
-mvn spring-boot:run -Dspring-boot.run.fork=false
-
-# Or use your IDE's auto-build feature
-```
-
-### Performance Tips
-
-1. **Use Dependency Caching**: Your IDE caches dependencies
-2. **Incremental Builds**: Only changed files are recompiled
-3. **Multi-module Projects**: Set up as a module dependency
-4. **CI/CD**: Let GitHub Actions do the building
-
-### Performance Benchmarks
-
-Run the included performance benchmarks to verify minimal overhead:
-
-```bash
-cd spring-boot-error-monitor-benchmark
-mvn exec:java -Dexec.mainClass="io.github.nnegi88.errormonitor.benchmark.BenchmarkRunner"
-```
-
-Key performance metrics:
-- **Request overhead**: < 2ms (avg: 1.2ms)
-- **Memory footprint**: ~35MB heap usage
-- **Throughput**: Handles 10,000+ errors/minute
-- **Non-blocking**: Zero impact on main request thread
-
-### Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. **Set Appropriate Log Levels** - Only send actionable alerts (ERROR/WARN)
+2. **Use MDC for Context** - Add relevant business context to all logs
+3. **Implement Rate Limiting** - Prevent channel flooding in error loops
+4. **Secure Your Webhooks** - Store webhook URLs in environment variables
+5. **Test Before Production** - Verify webhook connectivity in lower environments
 
 ## Troubleshooting
 
-### Common Issues
+### Messages Not Appearing
 
-1. **Notifications not being sent**
-   - Check webhook URL is correctly configured
-   - Verify rate limiting settings aren't too restrictive
-   - Check application logs for error details
-   - Use health endpoints to verify webhook connectivity
+1. Verify webhook URL is correct and active
+2. Check application logs for appender errors
+3. Ensure log level meets the configured minimum threshold
+4. Verify network connectivity to Slack/Teams
 
-2. **High memory usage**
-   - Adjust analytics retention period
-   - Reduce error aggregation if not needed
-   - Check for error loops causing excessive notifications
+### Performance Issues
 
-3. **Metrics not appearing**
-   - Ensure Micrometer is on the classpath
-   - Check metrics.enabled is true
-   - Verify your metrics backend is configured
+1. Ensure async mode is enabled (default)
+2. Increase queue size if seeing dropped messages
+3. Monitor memory usage with large queue sizes
+4. Consider rate limiting for high-volume applications
 
-4. **NoClassDefFoundError: reactor/util/retry/Retry**
-   - This error occurs when using an older version of Spring Boot (< 2.3) which includes reactor-core < 3.3.4
-   - The `Retry` class was introduced in reactor-core 3.3.4
-   - **Solution**: Check for dependency conflicts using:
-     ```bash
-     mvn dependency:tree -Dverbose | grep reactor-core
-     ```
-   - If you find conflicting versions, exclude the older reactor-core:
-     ```xml
-     <dependency>
-         <groupId>conflicting-dependency</groupId>
-         <artifactId>conflicting-artifact</artifactId>
-         <version>x.x.x</version>
-         <exclusions>
-             <exclusion>
-                 <groupId>io.projectreactor</groupId>
-                 <artifactId>reactor-core</artifactId>
-             </exclusion>
-         </exclusions>
-     </dependency>
-     ```
-   - Minimum supported Spring Boot version is 2.3.x which includes reactor-core 3.3.4+
+### Debug Logging
 
-### Debug Mode
-
-Enable debug logging to troubleshoot issues:
+Enable debug logging for the appenders:
 
 ```yaml
 logging:
   level:
-    io.github.nnegi88.errormonitor: DEBUG
+    io.github.nnegi88.errormonitor.logback: DEBUG
 ```
 
-## Development Workflow
+### Spring Property Placeholder Resolution
 
-### Branch Strategy
+The starter automatically resolves Spring property placeholders in configuration values. For example:
 
-- **main**: Production-ready code, triggers automatic releases to Maven Central
-- **develop**: Integration branch for features
-- **feature/***: Individual feature development
+- `${spring.application.name:Unknown}` resolves to your application name or "Unknown" if not set
+- `${spring.profiles.active:default}` resolves to the active profile or "default" if none
 
-### Development Process
+This ensures that notifications display actual values instead of placeholder strings:
 
-1. **Create feature branch from develop**:
-   ```bash
-   git checkout develop
-   git checkout -b feature/my-feature
-   ```
+```
+# Before resolution
+Alert from ${spring.application.name:Unknown} in ${spring.profiles.active:default}
 
-2. **After feature completion, merge to develop**:
-   ```bash
-   git checkout develop
-   git merge feature/my-feature
-   git push origin develop
-   ```
-
-3. **When ready for release, merge to main**:
-   ```bash
-   git checkout main
-   git merge develop
-   git push origin main
-   ```
-   - This automatically releases to Maven Central
-
-## Publishing to Maven Central
-
-### Automated Publishing
-
-Every push to `main` automatically:
-1. Builds the library
-2. Runs tests
-3. Creates GitHub Release
-4. Publishes to Maven Central
-
-No manual building required!
-
-### Manual Publishing
-
-For maintainers who need manual control:
-
-```bash
-# Deploy to Maven Central
-mvn clean deploy -P release -Dgpg.keyname=nnegi88@gmail.com
+# After resolution  
+Alert from my-app in production
 ```
 
-### Usage After Publication
-Once published, users can include the dependency:
+The resolution happens automatically using Spring's `Environment.resolvePlaceholders()` method during configuration initialization.
 
-```xml
-<dependency>
-    <groupId>io.github.nnegi88</groupId>
-    <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>1.0.1</version>
-</dependency>
+## Architecture
+
+This starter follows SOLID principles and clean architecture:
+
+```
+Domain Layer (Business Logic)
+├── Models: LogEvent, NotificationMessage, NotificationResult
+├── Ports: NotificationService, HttpClient, MessageFormatter
+└── Services: NotificationOrchestrator
+
+Infrastructure Layer (Implementation Details)  
+├── HTTP: HttpClientImpl, RetryableHttpClient
+├── Async: AsyncProcessorImpl
+├── Notifications: SlackNotificationService, TeamsNotificationService
+├── Formatters: SlackMessageFormatter, TeamsMessageFormatter
+└── Configuration: SlackConfig, TeamsConfig
+
+Application Layer (Spring Integration)
+└── AutoConfiguration: SolidNotificationAutoConfiguration
 ```
 
-### Verification
-After publication, verify at:
-- Maven Central: https://search.maven.org/artifact/io.github.nnegi88/spring-boot-error-monitor-starter
-- Repository: https://repo1.maven.org/maven2/io/github/nnegi88/spring-boot-error-monitor-starter/
+### SOLID Principles Applied
 
-## Troubleshooting
-
-### Common Issues
-
-#### Teams Notifications Not Working
-1. **Verify webhook URL**: Ensure the Teams webhook URL is correctly formatted and active
-2. **Check firewall**: Ensure your application can reach Microsoft Teams endpoints
-3. **Test webhook**: Try sending a test message directly to the webhook:
-   ```bash
-   curl -H "Content-Type: application/json" -d '{"text": "Test message"}' YOUR_TEAMS_WEBHOOK_URL
-   ```
-4. **Enable debug logging**:
-   ```yaml
-   logging:
-     level:
-       io.github.nnegi88.errormonitor: DEBUG
-   ```
-
-#### Slack Notifications Not Working
-1. **Verify webhook URL**: Ensure the Slack webhook URL is valid
-2. **Check channel**: Verify the channel exists and the webhook has access
-3. **Test webhook**: Send a test message:
-   ```bash
-   curl -X POST -H 'Content-type: application/json' --data '{"text":"Test message"}' YOUR_SLACK_WEBHOOK_URL
-   ```
-
-#### Rate Limiting Issues
-- If notifications are being dropped, check your rate limiting configuration
-- Use the `/actuator/errorStatistics` endpoint to monitor rate limiting
-
-#### Platform Auto-Detection
-The library auto-detects the platform from webhook URL:
-- Slack: URLs containing `hooks.slack.com`
-- Teams: URLs containing `webhook.office.com` or `outlook.office.com`
-
-If auto-detection fails, explicitly set the platform:
-```yaml
-spring:
-  error-monitor:
-    notification:
-      platform: "teams"  # or "slack" or "both"
-```
-
-## Security
-
-For security issues, please see our [Security Policy](SECURITY.md). Never expose webhook URLs in public repositories or logs.
+- **S**ingle Responsibility: Each class has one reason to change
+- **O**pen/Closed: Easy to extend with new notification services
+- **L**iskov Substitution: All implementations are interchangeable
+- **I**nterface Segregation: Small, focused interfaces
+- **D**ependency Inversion: Depends on abstractions, not concretions
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## Contributing
 
-- Built with ❤️ for the Spring Boot community
-- Inspired by the need for better error visibility in production
-- Thanks to all [contributors](https://github.com/nnegi88/spring-boot-error-monitor-starter/graphs/contributors)
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Support
+
+For issues and feature requests, please use the [GitHub issue tracker](https://github.com/nnegi88/spring-boot-error-monitor-starter/issues).

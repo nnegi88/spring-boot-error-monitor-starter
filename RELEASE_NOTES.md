@@ -1,47 +1,74 @@
 # Release Notes
 
-## [1.0.1] - 2025-06-28
+## [1.0.2] - 2024-01-30
+
+### 🎉 What's New
+This patch release focuses on bug fixes and improving the reliability of error notifications. All users are encouraged to upgrade to this version for better stability.
+
+### 🐛 Bug Fixes
+- **Fixed Log Level Filtering**: Corrected inverted comparison logic that was causing INFO and DEBUG logs to trigger notifications even when minimum level was set to ERROR
+- **Fixed Webhook URL Delivery**: Resolved issue where webhook URLs weren't being passed to notification services, causing "Target host is not specified" errors
+- **Fixed Slack Message Format**: Corrected Slack Block Kit JSON structure to prevent "invalid_blocks" errors
+- **Property Placeholder Resolution**: Spring property placeholders (like `${spring.application.name}`) now properly resolve to actual values instead of showing literal placeholder strings
+
+### 📝 Documentation
+- Updated README.md with complete and accurate configuration properties
+- Added documentation for rate limiting configuration options
+- Improved troubleshooting section with property placeholder resolution details
+
+### 🔧 Technical Details
+- Modified `NotificationOrchestrator.shouldSendNotification()` to use correct ordinal comparison
+- Enhanced `SolidNotificationAutoConfiguration` and `LogbackAppenderConfiguration` with Spring Environment integration
+- Updated `SlackMessage` class to include required `emoji` property in Text objects
+
+### 💡 Upgrade Notes
+No breaking changes. Simply update your dependency version to 1.0.2.
+
+---
+
+## [1.0.1] - 2024-01-29
 
 ### Fixed
-- Maven Central deployment configuration
-- Authentication issues with Sonatype Central Portal
-- Removed GitHub Packages distribution
-- CI/CD workflow optimizations
+- Various stability improvements and minor bug fixes
+- Enhanced error handling in HTTP clients
 
-### Changed
-- Upgraded central-publishing-maven-plugin from v0.4.0 to v0.8.0
-- Simplified deployment process to use only Maven Central
-- Updated documentation to reflect latest version
+---
 
-### Removed
-- Snapshot deployment to public repositories (not supported by Central Portal)
-- GitHub Packages configuration
-- Unnecessary scripts directory
+## [1.0.0] - 2024-01-28
 
-## [1.0.0] - 2025-06-27
+### 🚀 Initial Release
 
-### Initial Release
-- Core error monitoring functionality for Spring Boot applications
-- Multi-platform notification support (Slack & Microsoft Teams)
-- Zero-code integration with automatic error detection
-- Configurable error filtering and rate limiting
-- Rich error context with stack traces and request details
-- Asynchronous processing for minimal performance impact
-- Built-in security features for sensitive data masking
-- Metrics collection with Micrometer integration
-- Health check endpoints for monitoring
-- Advanced error analytics and trend detection
-- Management endpoints via Spring Boot Actuator
+We're excited to announce the first stable release of Spring Boot Error Monitor Starter!
 
-### Features
-- 🚨 Automatic error detection and reporting
-- 📱 Multi-platform support (Slack & Microsoft Teams)
-- 🔧 Zero-code integration with Spring Boot applications
-- 🎯 Configurable error filtering and rate limiting
-- 📊 Rich error context including stack traces and request details
-- ⚡ Asynchronous processing for minimal performance impact
-- 🛡️ Built-in security features for sensitive data masking
-- 📈 Metrics collection with Micrometer integration
-- 🏥 Health check endpoints for monitoring
-- 📊 Advanced error analytics and trend detection
-- 🎛️ Management endpoints via Spring Boot Actuator
+### ✨ Key Features
+
+#### Core Functionality
+- **Automatic Error Detection**: Seamlessly integrates with Logback to capture errors
+- **Multi-Platform Support**: Send notifications to Slack and Microsoft Teams
+- **Zero-Code Integration**: Works out of the box with Spring Boot applications
+- **Smart Filtering**: Configure minimum log levels to reduce noise
+- **Rich Context**: Includes stack traces, MDC properties, and application metadata
+
+#### Architecture & Design
+- **SOLID Principles**: Clean architecture with proper separation of concerns
+- **Domain-Driven Design**: Ports and adapters pattern for extensibility
+- **Spring Boot Native**: Full auto-configuration support
+- **Async Processing**: Non-blocking notification delivery
+- **Rate Limiting**: Built-in protection against notification flooding
+
+#### Configuration Options
+- Customizable application name and environment labels
+- Configurable timeouts and queue sizes
+- Optional stack trace inclusion
+- Per-platform minimum log levels
+
+### 📋 Requirements
+- Java 11 or higher
+- Spring Boot 2.3 or higher
+- Valid Slack or Teams webhook URLs
+
+### 🚀 Quick Start
+Add the dependency and configure your webhook URL - that's it! Check the README for detailed configuration options.
+
+### 🙏 Acknowledgments
+Thanks to all contributors who helped shape this initial release with feedback and testing.
