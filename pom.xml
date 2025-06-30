@@ -7,11 +7,11 @@
 
     <groupId>io.github.nnegi88</groupId>
     <artifactId>spring-boot-error-monitor-starter</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
 
-    <name>Spring Boot Error Monitor Starter</name>
-    <description>A Spring Boot starter for centralized error monitoring with Slack and Microsoft Teams notifications</description>
+    <name>Spring Boot Logback Alerting Starter</name>
+    <description>A Spring Boot starter providing Logback appenders for sending log alerts to Slack and Microsoft Teams</description>
     <url>https://github.com/nnegi88/spring-boot-error-monitor-starter</url>
     
     <licenses>
@@ -102,16 +102,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- HTTP Client for Webhook calls -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webflux</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>io.projectreactor.netty</groupId>
-            <artifactId>reactor-netty</artifactId>
-        </dependency>
 
         <!-- JSON Processing -->
         <dependency>
@@ -134,6 +124,13 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+        </dependency>
+        
+        <!-- Logback (optional for appender support) -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!-- Testing -->
@@ -164,11 +161,6 @@
             <scope>test</scope>
         </dependency>
         
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-test</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
